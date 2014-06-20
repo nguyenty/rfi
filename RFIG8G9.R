@@ -1,4 +1,6 @@
 require(Matrix)
+library(QuasiSeq)
+library(edgeR)
 ### Reading data #######
 scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -21,8 +23,8 @@ fullidpig <- as.numeric(paste("20900", metadata$idpig, sep = ""))
 covset <- cbind(metadata[, -4], rfiadj[rfiadj$idpig %in% fullidpig, c("rfi.ADJUSTED")], 
                 cbc[, c("iddam", "idsire", "Neutrophil", "Lymphocyte", "Monocyte",
                         "Eosinophil", "Basophil" )])
-colnames(covset) <- c("idpig", "line", "diet",  "block", "blockorder", "concb", 
-                      "RINb", "conca", "RINa", "rfi",
+colnames(covset) <- c("idpig", "Line", "Diet",  "Block", "Blockorder", "Concb", 
+                      "RINb", "Conca", "RINa", "RFI",
                       "iddam", "idsire", "neut",   
                       "lymp", "mono","eosi", "baso")
 
@@ -30,46 +32,33 @@ colnames(covset) <- c("idpig", "line", "diet",  "block", "blockorder", "concb",
 covset <- cbind(covset, lneut = log(covset$neut), llymp = log(covset$lymp), 
                 lmono = log(covset$mono), leosi = log(covset$eosi), 
                 lbaso = log(covset$baso)) 
-covset$line <- as.factor(covset$line)
-covset$diet <- as.factor(covset$diet)
-covset$block <- as.factor(covset$block)
-covset$blockorder <- as.factor(covset$blockorder)
+covset$Line <- as.factor(covset$Line)
+covset$Diet <- as.factor(covset$Diet)
+covset$Block <- as.factor(covset$Block)
+covset$Blockorder <- as.factor(covset$Blockorder)
 covset$iddam <- as.factor(covset$iddam)
 covset$idsire <- as.factor(covset$idsire)
 levels(covset$idsire) <- 1:11
 levels(covset$iddam) <- 1:20
 
 covset[, c("iddam", "idsire")]
+detach(covset)
 attach(covset)
-boxplot(neut~ block)
-boxplot(lymp~ block)
-boxplot(eosi~ block)
-boxplot(baso~ block)
-boxplot(mono~ block)
-
-boxplot(neut~ diet)
-boxplot(lymp~ diet)
-boxplot(eosi~ diet)
-boxplot(baso~ diet)
-boxplot(mono~ diet)
-
-boxplot(neut~ line)
-boxplot(lymp~ line)
-boxplot(eosi~ line)
-boxplot(baso~ line)
-boxplot(mono~ line)
 
 ###List of models function ####
 ### Case 1: no cbc data ####
 
-dim(model.matrix (~iddam * idsire))
-rank
+colnames(covset)
+full_model <- model.matrix(~Line*Diet*RFI + Block + 
+                             Blockorder + Concb + RINb + 
+                             Conca + RINa + lneut + llymp+ lmono + leosi + lbaso)
+colnames(full_model)
+rankMatrix(full_model)
 list_model <- function(full_model){
   n <- dim(full_model)[2]
   variable_name <- colnames(full_model)
   variable_name <- gsub(":", "", variable_name)
-  variable_name <- gsub("2", "", variable_name)
-  variable_name <- gsub("7", "", variable_name)
+  for (i in 2:8){variable_name <- gsub(i, "", variable_name)}
   test.mat <- NULL
   design.list <- vector("list", n)
   design.list[[1]] <- full_model
@@ -168,7 +157,7 @@ fit_model <- function(full_model, model_th){
 
 
 m <- 1
-full_model <- model.matrix(~line + diet + idsire + iddam + block+ blockorder)
+full_model <- model.matrix(~block+ blockorder)
 full_model <- model.matrix(~idsire + iddam)
 rankMatrix(full_model)
 
