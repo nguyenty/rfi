@@ -1,6 +1,8 @@
 require(Matrix)
 library(QuasiSeq)
 library(edgeR)
+require(reshape)
+require(plyr)
 ### Reading data #######
 scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -49,15 +51,16 @@ attach(covset)
 ### Case 1: no cbc data ####
 dim(covset)
 colnames(covset)
-full_model <- model.matrix(~Line*Diet*RFI + Block + 
-                             Blockorder + Concb + RINb + 
-                             Conca + RINa + lneut + llymp+ lmono + leosi + lbaso)
+full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + 
+                             Conca + RINa + lneut + llymp + 
+                             lmono + leosi + lbaso+ Block + 
+                             Blockorder)
 colnames(full_model)
 rankMatrix(full_model)
 
 list_model <- function(full_model){
   n <- dim(full_model)[2]
-  variable_name <- colnames(full_model)
+  variable_name <- colnames(full_model)[-1]
   variable_name <- gsub(":", "", variable_name)
   for (i in 2:8){variable_name <- gsub(i, "", variable_name)}
   test.mat <- NULL
@@ -68,27 +71,62 @@ list_model <- function(full_model){
     test.mat <- rbind(test.mat, c(1,i))
   }
   
-  row.names(test.mat) <-  variable_name[-1]
+  row.names(test.mat) <-  variable_name
   
-  if (any(variable_name == "dateGD1/13/01")){
-    ind_dateGD <- which(variable_name == "dateGD1/13/01")
-    design.list <- vector("list", n-3)
+  if (any(variable_name == "Block") & any(variable_name == "Blockorder")){
+    ind_block <- which(variable_name == "Block")[1]
+    ind_blockorder <- which(variable_name == "Blockorder")[1] 
+    nlist <- n - sum(variable_name == "Block") -
+      sum(variable_name == "Blockorder") + 2
+    design.list <- vector("list", nlist)
     design.list[[1]] <- full_model
-    test.mat <- laply(1:(n-4), function(i) c(1,i+1))
+    test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
     row.names(test.mat) <- variable_name[1:nrow(test.mat)]
     
-    for(i in 2:(ind_dateGD-1)){
-      design.list[[i]] <- as.matrix(full_model[,-i])
-      row.names(test.mat)[i-1] <- variable_name[i]
+    for(i in 1:(ind_block-1)){
+      design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
+      row.names(test.mat)[i] <- variable_name[i]
     }
     
-    design.list[[ind_dateGD]] <- full_model[,-(ind_dateGD:(ind_dateGD+3))]
-    row.names(test.mat)[ind_dateGD -1] <- "dateGD"
+    design.list[[ind_block]] <- full_model[,-((ind_block+1):(ind_block+3))]
+    #colnames(design.list[[ind_block]])
+    design.list[[ind_block +1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+    row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    #colnames(design.list[[ind_block+1]])
+    # colnames(design.list[[1]])
+    if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
+      for(i in ((ind_block+2):(n-9))){
+        design.list[[i]] <- full_model[,-(i + 9)]
+        row.names(test.mat)[i] <- variable_name[i+8]    
+      }
+    }
+  }
+  
+  if (any(variable_name == "Block") & all(variable_name != "Blockorder")){
+    ind_block <- which(variable_name == "Block")[1]
+    ind_blockorder <- which(variable_name == "Blockorder")[1] 
+    nlist <- n - sum(variable_name == "Block") -
+      sum(variable_name == "Blockorder") + 2
+    design.list <- vector("list", nlist)
+    design.list[[1]] <- full_model
+    test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
+    row.names(test.mat) <- variable_name[1:nrow(test.mat)]
     
-    if((ind_dateGD+1)<=(n-3)){
-      for(i in ((ind_dateGD+1):(n-3))){
-        design.list[[i]] <- full_model[,-(i+3)]
-        row.names(test.mat)[i-1] <- variable_name[i+3]    
+    for(i in 1:(ind_block-1)){
+      design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
+      row.names(test.mat)[i] <- variable_name[i]
+    }
+    
+    design.list[[ind_block]] <- full_model[,-((ind_block+1):(ind_block+3))]
+    #colnames(design.list[[ind_block]])
+    design.list[[ind_block +1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+    row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    #colnames(design.list[[ind_block+1]])
+    # colnames(design.list[[1]])
+    if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
+      for(i in ((ind_block+2):(n-9))){
+        design.list[[i]] <- full_model[,-(i + 9)]
+        row.names(test.mat)[i] <- variable_name[i+8]    
       }
     }
   }
