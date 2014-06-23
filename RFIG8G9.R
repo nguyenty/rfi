@@ -42,18 +42,19 @@ levels(covset$idsire) <- 1:11
 levels(covset$iddam) <- 1:20
 
 covset[, c("iddam", "idsire")]
-detach(covset)
+#detach(covset)
 attach(covset)
 
 ###List of models function ####
 ### Case 1: no cbc data ####
-
+dim(covset)
 colnames(covset)
 full_model <- model.matrix(~Line*Diet*RFI + Block + 
                              Blockorder + Concb + RINb + 
                              Conca + RINa + lneut + llymp+ lmono + leosi + lbaso)
 colnames(full_model)
 rankMatrix(full_model)
+
 list_model <- function(full_model){
   n <- dim(full_model)[2]
   variable_name <- colnames(full_model)
