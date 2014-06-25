@@ -3,18 +3,34 @@ library(QuasiSeq)
 library(edgeR)
 require(reshape)
 require(plyr)
+
 ### Reading data #######
-scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
+# scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
+#                      header = T)
+# cbc <- read.table('/home/ntyet/research/RFI-newdata/Data for Yet/CBC data for pigs with RNA-seq data avaible.txt',
+#                   header =T)
+# 
+# metadata <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/meta_data_RNA-seq_G9P2.txt", 
+#                        header = T)
+# 
+# rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
+#                      header = T)
+
+resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
+scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
-cbc <- read.table('/home/ntyet/research/RFI-newdata/Data for Yet/CBC data for pigs with RNA-seq data avaible.txt',
+cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
                   header =T)
 
-metadata <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/meta_data_RNA-seq_G9P2.txt", 
+metadata <- read.table("meta_data_RNA-seq_G9P2.txt", 
                        header = T)
 
-rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
-                     header = T)
+rfiadj <- read.csv("g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
+                   header = T)
+
 ##### cleaning data####
+
+
 
 cbc <- cbc[order(cbc$ear), ]
 metadata <- metadata[order(metadata$idpig), ]
@@ -49,14 +65,57 @@ attach(covset)
 
 ###List of models function ####
 ### Case 1: no cbc data ####
-dim(covset)
-colnames(covset)
-full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + 
-                             Conca + RINa + lneut + llymp + 
-                             lmono + leosi + lbaso+ Block + 
-                             Blockorder)
-colnames(full_model)
-rankMatrix(full_model)
+# dim(covset)
+# colnames(covset)
+# full_model <- model.matrix(~Line*Diet*RFI + Block+ Blockorder)
+# colnames(full_model)
+# rankMatrix(full_model)
+# list_model(full_model)
+log.gamma <- function(counts, disp){
+  log.g <- NULL
+  n <- length(counts)
+  for(i in 1:n){
+    log.g[i] <- sum(log(0:(counts[i]-1)+disp)) - sum(log(1:counts[i]) )
+  }
+  return(log.g)  
+}
+
+SAT.LIKE2<-function(count,disp){
+  means<-count
+  like<-disp*log(disp/(disp+means))
+  like[count!=0]<-like[count!=0]+count[count!=0]*log(means[count!=0]/(disp+means[count!=0]))+
+    log.gamma(count[count!=0],disp )
+  sum(like)
+}
+
+## Function to calculate AIC of the QL.fit model 
+
+AIC.QL <- function(counts,QL.fit.object){
+  n <- dim(counts)[2]
+  m <- dim(counts)[1]
+  disp <- 1/QL.fit.object$NB.disp
+  den.df <- QL.fit.object$den.df
+  phi.hat.dev <- QL.fit.object$phi.hat.dev
+  p <- n - den.df
+  dev <- phi.hat.dev*den.df
+  L0 <- NULL
+  for (i in 1:m){
+    L0[i] <- SAT.LIKE2(counts[i,],disp[i])
+  }
+  
+  return(dev-2*L0+2*p)
+}
+
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>1 & 
+                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+
+
+dim(scount)
+dim(counts)
+log.offset <- log(apply(counts, 2, quantile, .75))
+###############
 
 list_model <- function(full_model){
   n <- dim(full_model)[2]
@@ -83,75 +142,81 @@ list_model <- function(full_model){
     test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
     row.names(test.mat) <- variable_name[1:nrow(test.mat)]
     
-    for(i in 1:(ind_block-1)){
+    for(i in 1:(ind_block-1)){ # i <- ind_block - 1
       design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
       row.names(test.mat)[i] <- variable_name[i]
     }
     
-    design.list[[ind_block]] <- full_model[,-((ind_block+1):(ind_block+3))]
-    #colnames(design.list[[ind_block]])
-    design.list[[ind_block +1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-    row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    design.list[[ind_block + 1]] <- full_model[,-((ind_block+1):(ind_block+3))]
+    # row.names(test.mat)
     #colnames(design.list[[ind_block+1]])
+    design.list[[ind_block +2]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+    row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    # colnames(design.list[[ind_block+2]])
     # colnames(design.list[[1]])
     if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
-      for(i in ((ind_block+2):(n-9))){
-        design.list[[i]] <- full_model[,-(i + 9)]
-        row.names(test.mat)[i] <- variable_name[i+8]    
+      for(i in ((ind_block+3):(n-8))){
+        design.list[[i]] <- full_model[,-(i + 8)] # colnames (full_model)
+        row.names(test.mat)[i-1] <- variable_name[i+7]    
       }
     }
   }
   
   if (any(variable_name == "Block") & all(variable_name != "Blockorder")){
     ind_block <- which(variable_name == "Block")[1]
-    ind_blockorder <- which(variable_name == "Blockorder")[1] 
-    nlist <- n - sum(variable_name == "Block") -
-      sum(variable_name == "Blockorder") + 2
+    nlist <- n - sum(variable_name == "Block") + 1
     design.list <- vector("list", nlist)
     design.list[[1]] <- full_model
     test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
     row.names(test.mat) <- variable_name[1:nrow(test.mat)]
     
-    for(i in 1:(ind_block-1)){
+    for(i in 1:(ind_block-1)){ # i <- ind_block - 1
       design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
       row.names(test.mat)[i] <- variable_name[i]
     }
     
-    design.list[[ind_block]] <- full_model[,-((ind_block+1):(ind_block+3))]
-    #colnames(design.list[[ind_block]])
-    design.list[[ind_block +1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-    row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    design.list[[ind_block + 1]] <- full_model[,-((ind_block+1):(ind_block+3))]
+    # row.names(test.mat)[ind_block] <- "Block"
+    # row.names(test.mat)
     #colnames(design.list[[ind_block+1]])
+#     design.list[[ind_block +2]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+#     row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    # colnames(design.list[[ind_block+2]])
     # colnames(design.list[[1]])
-    if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
-      for(i in ((ind_block+2):(n-9))){
-        design.list[[i]] <- full_model[,-(i + 9)]
-        row.names(test.mat)[i] <- variable_name[i+8]    
+    if(ind_block + 3 < n){ # i <- 15 # colnames(design.list[[i]])
+      for(i in ((ind_block+2):(n-2))){
+        design.list[[i]] <- full_model[,-(i + 2)] # colnames (full_model)
+        row.names(test.mat)[i-1] <- variable_name[i+1]    
       }
     }
   }
   
-  if (any(variable_name == "dateRNA11/14/01")){
-    ind_dateRNA <- which(variable_name == "dateRNA11/14/01")
-    design.list <- vector("list", n-1)
-    design.list[[1]] <- full_model
-    test.mat <- laply(1:(n-2), function(i) c(1,i+1))
-    row.names(test.mat) <- variable_name[1:nrow(test.mat)]
-    
-    for(i in 2:(ind_dateRNA-1)){
-      design.list[[i]] <- as.matrix(full_model[,-i])
-      row.names(test.mat)[i-1] <- variable_name[i]
-    }
-    
-    design.list[[ind_dateRNA]] <- full_model[,-(ind_dateRNA:(ind_dateRNA+1))]
-    row.names(test.mat)[ind_dateRNA -1] <- "dateRNA"
-    
-    if ((ind_dateRNA+1)<=(n-1)) {for(i in ((ind_dateRNA+1):(n-1))){
-      design.list[[i]] <- full_model[,-(i+1)]
-      row.names(test.mat)[i-1] <- variable_name[i+1]    
-    }
+if (all(variable_name != "Block") & any(variable_name == "Blockorder")){
+  ind_blockorder <- which(variable_name == "Blockorder")[1] 
+  nlist <- n - sum(variable_name == "Blockorder") + 1
+  design.list <- vector("list", nlist)
+  design.list[[1]] <- full_model
+  test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
+  row.names(test.mat) <- variable_name[1:nrow(test.mat)]
+  
+  for(i in 1:(ind_blockorder-1)){ # i <- ind_blockorder - 1
+    design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
+    row.names(test.mat)[i] <- variable_name[i]
+  }
+  
+  design.list[[ind_blockorder + 1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+  # row.names(test.mat)[[ind_blockorder]]
+  # colnames(design.list[[ind_blockorder+1]])
+  row.names(test.mat)[ind_blockorder] <- "Blockorder" 
+  # colnames(design.list[[ind_block+2]])
+  # colnames(design.list[[1]])
+  if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
+    for(i in ((ind_blockorder+2):(n-6))){
+      design.list[[i]] <- full_model[,-(i + 6)] # colnames (full_model)
+      row.names(test.mat)[i-1] <- variable_name[i+5]    
     }
   }
+}
   if (n ==2) design.list[[2]] <- rep(1, nrow(full_model))
   return(list(design.list = design.list, test.mat = test.mat))
 }
@@ -159,7 +224,7 @@ list_model <- function(full_model){
 
 ## Function do all the things with input Full model
 
-fit_model <- function(full_model, model_th){
+fit_model <- function(full_model, model_th){ # model_th <- 1
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
@@ -170,7 +235,7 @@ fit_model <- function(full_model, model_th){
   k <- nrow(test.mat)
   name_model <- NULL
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-  model_dir <- paste(datdir, "/Reanalysis Data/result/Model",model_th,name_model, sep ="")
+  model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
   dir.create(model_dir, showWarnings = FALSE)
   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
@@ -192,27 +257,34 @@ fit_model <- function(full_model, model_th){
     dev.off()
   }
   print(paste("Model", model_th, sep = " "))
+  
+  return(list(mean_model = mean(fit$phi.hat.dev), 
+              median_model = median(fit$phi.hat.dev), 
+              AIC_model = mean(AIC.QL(counts, fit))))
 }
 
-
 m <- 1
-full_model <- model.matrix(~block+ blockorder)
-full_model <- model.matrix(~idsire + iddam)
-rankMatrix(full_model)
+model_th <- m
+full_model <- model.matrix(~Line)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
 
 #colnames(full_model)
 # list_model(full_model)
-model_th <- m 
-list_out <- list_model(full_model)
-design.list <- list_out$design.list
-test.mat <- list_out$test.mat
-k <- nrow(test.mat)
-name_model <- NULL
-for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-model_dir <- paste(datdir, "/Reanalysis Data/result/Model",model_th,name_model, sep ="")
-dir.create(model_dir, showWarnings = FALSE)
-file_fit <- paste(model_dir,"/Model",model_th, "_fit.RData", sep ="")
-load(file_fit)
+model_th <- m)
 assign(paste("AICQL", model_th, sep = "_" ),mean(AIC.QL(counts, fit)))
 get(paste("AICQL", model_th, sep = "_" ))
 #pm1 <- proc.time(); fit_model(full_model, model_th) ;proc.time() -pm1
