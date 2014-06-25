@@ -16,7 +16,8 @@ require(plyr)
 # rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
 #                      header = T)
 
-resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
+#resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
+resultdir <- "U:/R/RA/Data/RFI-newdata/result"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
@@ -262,10 +263,12 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
               median_model = median(fit$phi.hat.dev), 
               AIC_model = mean(AIC.QL(counts, fit))))
 }
-
+# Model 1
 m <- 1
 model_th <- m
-full_model <- model.matrix(~Line)
+full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + Conca + RINa + 
+                             lnewt + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 
@@ -282,9 +285,3 @@ get(paste("mean", model_th, sep = "_" ))
 proc.time() -pm1 
 
 
-#colnames(full_model)
-# list_model(full_model)
-model_th <- m)
-assign(paste("AICQL", model_th, sep = "_" ),mean(AIC.QL(counts, fit)))
-get(paste("AICQL", model_th, sep = "_" ))
-#pm1 <- proc.time(); fit_model(full_model, model_th) ;proc.time() -pm1
