@@ -263,11 +263,12 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
               median_model = median(fit$phi.hat.dev), 
               AIC_model = mean(AIC.QL(counts, fit))))
 }
+
 # Model 1
 m <- 1
 model_th <- m
 full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + Conca + RINa + 
-                             lnewt + llymp + lmono + leosi + lbaso + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
