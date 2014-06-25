@@ -1,18 +1,16 @@
 require(Matrix)
-library(QuasiSeq)
+#library(QuasiSeq)
 library(edgeR)
 require(reshape)
 require(plyr)
-ibrary(edgeR)
 library(fields)
-library(plyr)
 library(reshape)
-# dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-# #dir.source <- "/home/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-# source(paste(dir.source, "QL.fit.R",sep=""))
-# source(paste(dir.source, "NBDev.R",sep =""))
-# source(paste(dir.source, "PoisDev.R",sep =""))
-# source(paste(dir.source, "QL.results.R",sep =""))
+dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
+#dir.source <- "/home/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
+source(paste(dir.source, "QL.fit.R",sep=""))
+source(paste(dir.source, "NBDev.R",sep =""))
+source(paste(dir.source, "PoisDev.R",sep =""))
+source(paste(dir.source, "QL.results.R",sep =""))
 
 ### Reading data #######
 # scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
@@ -295,4 +293,48 @@ get(paste("mean", model_th, sep = "_" ))
 
 proc.time() -pm1 
 
+
+# Model 2
+m <- 2
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + Concb + 
+                             RINb + Conca + RINa + 
+                             Block + Blockorder)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+
+# Model 100
+m <- 100
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + 
+                             Block + Blockorder)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
 
