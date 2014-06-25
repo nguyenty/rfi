@@ -300,6 +300,7 @@ model_th <- m
 full_model <- model.matrix(~Line*Diet*RFI + Concb + 
                              RINb + Conca + RINa + 
                              Block + Blockorder)
+#rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 
@@ -318,10 +319,251 @@ proc.time() -pm1
 
 
 
+# Model 3
+m <- 3
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + Concb + 
+                             RINb + Conca + RINa + 
+                             Block)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+# Model 4
+m <- 4
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + Concb + 
+                             RINb + RINa + 
+                             Block)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+# Model 5
+m <- 5
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + Concb + 
+                              RINa + 
+                             Block)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+
+# Model 6
+m <- 6
+model_th <- m
+full_model <- model.matrix(~Line*Diet + Diet*RFI + Line*RFI + Concb + 
+                             RINa + 
+                             Block)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+# Model 7
+m <- 7
+model_th <- m
+full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
+                             RINa + 
+                             Block)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+# Model 8
+m <- 8
+model_th <- m
+full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
+                             RINa + 
+                             Block)[, -3]
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+
+# Model 9
+m <- 9
+model_th <- m
+full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
+                             RINa + 
+                             Block)[, -c(3,4)]
+#colnames(full_model)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+# Model 10
+m <- 10
+model_th <- m
+full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
+                             RINa + 
+                             Block)[, -c(3,4,11)]
+#colnames(full_model)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+# Model 11
+m <- 11
+model_th <- m
+full_model <- model.matrix(~Line + Concb + 
+                             RINa + 
+                             Block)
+#colnames(full_model)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
 # Model 100
 m <- 100
 model_th <- m
 full_model <- model.matrix(~Line*Diet*RFI + 
+                             Block + Blockorder)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+# Model 101
+m <- 101
+model_th <- m
+full_model <- model.matrix(~Line*Diet*RFI + 
+                             lneut + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
