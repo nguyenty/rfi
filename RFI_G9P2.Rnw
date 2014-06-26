@@ -1,0 +1,532 @@
+\documentclass[handout,xcolor=pdftex,dvipsnames,table]{beamer} 
+
+\usecolortheme[RGB={0,0,144}]{structure}
+%\usetheme{AnnArbor}\usecolortheme{beaver}
+\usetheme{CambridgeUS}\usecolortheme{dolphin}
+
+\usepackage{graphicx}
+\usepackage[space]{grffile}
+\usepackage{verbatim,xmpmulti,color,multicol,multirow}
+\setlength{\unitlength}{\textwidth}  % measure in textwidths
+\usepackage[normalem]{ulem}
+\usepackage{amssymb,amsmath,latexsym}
+\usepackage{booktabs}
+\usepackage{array}
+\newcolumntype{L}{>{$}l<{$}}
+\newcolumntype{C}{>{$}c<{$}}
+\newcolumntype{R}{>{$}r<{$}}
+\newcommand{\nm}[1]{\textnormal{#1}}
+
+
+%\usepackage{beamerthemesplit}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+%\setbeamercolor{alerted text}{fg=red}
+%\setbeamertemplate{block body theorem}{bg=orange}
+\setkeys{Gin}{width=0.6\textwidth}
+
+
+%\SweaveOpts{concordance=TRUE}
+
+<<setup, include=FALSE>>=
+#render_listings()
+#pdf.options(useDingbats = TRUE)
+opts_chunk$set(fig.path='figure/beamer-',fig.align='center',fig.show='hold',size='footnotesize',echo=FALSE,message=FALSE,error=FALSE,warning=FALSE)
+opts_chunk$set(fig.width=5, fig.height=5, out.width='.6\\linewidth', fig.align='center')
+
+@
+
+<<echo=FALSE,results='hide'>>=
+# some setup
+options(width=60) # make the printing fit on the page
+set.seed(1121) # make the results repeatable
+require(xtable)
+require(PASWR)
+@
+
+\title[RNASeq Analysis]{Analyze RNASeq Data from G9P2 RFI Lines Using QuasiSeq Package}
+
+
+% \author[Yet Nguyen, Dan Nettleton]{Yet Nguyen \and Dan Nettleton}
+% \institute[ISU]{Iowa State University}
+
+%
+
+\begin{document}
+\frame{\maketitle}
+\frame {
+\frametitle{Table of Contents}
+\begin{itemize}
+\setlength{\itemsep}{.2in}
+\item[1.] Data Summary
+\item[2.] Models
+\item[3.] Model Selection Using  AIC
+\item[4.] Results
+\end{itemize}
+}
+
+
+\section{Data Summary}
+\begin{frame}[fragile]
+\frametitle{RNASeq Data Summary}
+\begin{itemize}
+\setlength{\itemsep}{.25in}
+\item RNASeq data set is a  25320 $\times$ 31 table of count data  corresponding to 25320 genes of 31  pigs from 2 Lines (high RFI Line and low RFI Line) and 2 Diets (high energy Diet 1 and low energy Diet 2).
+
+\item  For Diet 1, the RNA data are from 7 low RFI line pigs and 8  high RFI line pigs. 
+For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
+
+\item The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts.  
+\end{itemize}
+ <<echo=FALSE,include=FALSE>>=
+dir.source <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
+source(paste(dir.source, "QL.fit.R",sep=""))
+source(paste(dir.source, "NBDev.R",sep =""))
+source(paste(dir.source, "PoisDev.R",sep =""))
+source(paste(dir.source, "QL.results.R",sep =""))
+
+### Reading data #######
+scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
+                     header = T)
+cbc <- read.table('/home/ntyet/research/RFI-newdata/Data for Yet/CBC data for pigs with RNA-seq data avaible.txt',
+                  header =T)
+
+metadata <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/meta_data_RNA-seq_G9P2.txt", 
+                       header = T)
+
+rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
+                     header = T)
+
+resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
+#resultdir <- "U:/R/RA/Data/RFI-newdata/result"
+# scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+#                      header = T)
+# cbc <- read.table(paste(resultdir, "/rfi/CBC data for pigs with RNA-seq data avaible.txt", sep = ""),
+#                   header =T)
+# 
+# metadata <- read.table("meta_data_RNA-seq_G9P2.txt", 
+#                        header = T)
+# 
+# rfiadj <- read.csv("g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
+#                    header = T)
+
+##### cleaning data####
+
+cbc <- cbc[order(cbc$ear), ]
+metadata <- metadata[order(metadata$idpig), ]
+rfiadj <- rfiadj[order(rfiadj$idpig),]
+
+fullidpig <- as.numeric(paste("20900", metadata$idpig, sep = ""))
+
+covset <- cbind(metadata[, -4], rfiadj[rfiadj$idpig %in% fullidpig, c("rfi.ADJUSTED")], 
+                cbc[, c("iddam", "idsire", "Neutrophil", "Lymphocyte", "Monocyte",
+                        "Eosinophil", "Basophil" )])
+colnames(covset) <- c("idpig", "Line", "Diet",  "Block", "Blockorder", "Concb", 
+                      "RINb", "Conca", "RINa", "RFI",
+                      "iddam", "idsire", "neut",   
+                      "lymp", "mono","eosi", "baso")
+
+#####set of covariates considered ####
+covset <- cbind(covset, lneut = log(covset$neut), llymp = log(covset$lymp), 
+                lmono = log(covset$mono), leosi = log(covset$eosi), 
+                lbaso = log(covset$baso)) 
+covset$Line <- as.factor(covset$Line)
+covset$Diet <- as.factor(covset$Diet)
+covset$Block <- as.factor(covset$Block)
+covset$Blockorder <- as.factor(covset$Blockorder)
+covset$iddam <- as.factor(covset$iddam)
+covset$idsire <- as.factor(covset$idsire)
+levels(covset$idsire) <- 1:11
+levels(covset$iddam) <- 1:20
+
+covset[, c("iddam", "idsire")]
+# #detach(covset)
+# attach(covset)
+# counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+#                            rowMeans(scount[,-1])>1 & 
+#                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
+#                              rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+# 
+# 
+# dim(scount)
+# dim(counts)
+@
+
+\end{frame}
+
+
+
+
+%%%%%%%%%%%%%%%%
+\frame{
+\frametitle{Metadata Summary}
+\begin{itemize}
+\setlength{\itemsep}{.25in}
+\item The available metadata consists of infomation of  9 covariates for 31 samples of 31 pigs.
+\item Factors: Diet (2 levels), Line (2 levels), Block (4 levels), Blockorder (8 levels).
+\item Quantitative covariates: RFI, RINb, RINa, Concb, Conca.
+\end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \begin{frame}
+% \frametitle{Goals of the Analysis}
+% \begin{itemize}
+% \setlength{\itemsep}{.25in}
+% \item Identify genes that are differentially expressed between Diets, Lines and/or show Diet$\times$Line  interaction.
+% \item Identify genes associated with RFI values.
+% \item Account for effects of other covariates and factors on the RNA data.
+% \end{itemize}
+% \end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+% 
+% \begin{frame}
+% \frametitle{Analyze RNA Data Using Quasi-Likelihood Method}
+% \begin{itemize}
+% \setlength{\itemsep}{.25in}
+% \item To accomplish these goals, we use Quasi-likelihood with shrunken dispersion estimates proposed by S. Lund et al.\ (\emph{Statistical Applications in Genetics and Molecular Biology}, 2012).
+% 
+% \item Considering various design matrices that include different sets of covariates, we obtain a histogram of $p$-values for each factor and covariate of each model.
+% 
+% % \item Compare $p$-values of Diet, Line, RFI.value for those models.
+% % 
+% % \item Compute mean and median of estimated dispersion parameters, and AIC for each model, to choose the "best" model among examined models.
+% \end{itemize}
+% \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Models}
+\begin{frame}[fragile]
+\frametitle{Models}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
+    \end{figure}
+\end{frame}
+
+% \begin{frame}[fragile]
+% \frametitle{Confounding Effects of RINa, RINb, and Diet}
+% <<fig.width=4, fig.height=4, out.width='.4\\linewidth'>>=
+% 
+% 
+%  datdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data"
+% # datdir <- "/home/ntyet/cyfiles/R/RA/Data"
+% #datdir <-  "U:/R/RA/Data"
+% ndata <- read.csv(
+%   paste(datdir,
+%         "/Reanalysis Data/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv",
+%         sep =""))
+% 
+% 
+% dat <- read.table(paste(datdir,"/RFI_uniq_comb_count_corrected.txt", sep = ""))
+% #dim(dat)
+% meta.data <- read.csv(paste(datdir,"/RIN values RNAseq Obj3a Martine.csv",sep = ""))
+% nname <- paste("20800",sprintf("%04.0f",meta.data$Sample.Name), sep = "")
+% meta.data2 <- cbind(ID=as.numeric(nname),meta.data)
+% 
+% nndata <- ndata[ndata[,"idpig"]%in% nname,c("idpig","rfi.ADJUSTED") ]
+% for (i in 1:length(nname)){
+%   for(j in 1:length(nname)){
+%     if (meta.data2$ID[i]==nndata$idpig[j])
+%       meta.data2$RFI.value[i] <- nndata$rfi.ADJUSTED[j]
+%   }
+% }
+% 
+% write.table(meta.data2, paste(datdir,"/Meta.data2.txt",sep = ""), sep = "\t")
+% write.csv(meta.data2, paste(datdir,"/Meta.data2.csv",sep =""))
+% 
+% name <- paste("X",meta.data$Sample.Name, sep = "")
+% dat2 <- dat[, name]
+% 
+% Lane <- as.factor(meta.data$Lane.RNAseq)
+% Diet <- as.factor(meta.data$diet)
+% Line <- as.factor(meta.data$line)
+% RFI <- meta.data2$RFI.value
+% RINb <- meta.data$RIN.before.GD
+% RINa  <- meta.data$RIN.after.GD
+% Conc <- meta.data$Conc.after.GD.ng.ul.
+% dateGD <- meta.data$date.GD
+% dateRNA <- meta.data$date.RNA.extraction
+% variable_name <- c("Lane", "Diet", "Line", "RFI", 
+%                    "RINb", "RINa", 
+%                    "Conc", "dateGD", "dateRNA")
+% 
+% 
+% counts <- as.matrix(dat2[rowSums(dat2>0)>3&
+%                            rowMeans(dat2)>1,])
+% log.offset <- log(apply(counts, 2, quantile, .75))
+% 
+% boxplot(RINa~Diet, main ="RINa vs. Diet, pvalue = 0.042", ylab = "RINa", xlab = "Diet")
+% boxplot(RINb~Diet, main ="RINb vs. Diet, pvalue = 0.78 ", ylab = "RINb", xlab = "Diet")
+% 
+% @
+% \end{frame}
+% 
+% 
+% % \section{Comparision of p-values}
+% % 
+% % \begin{frame}[fragile]
+% % \frametitle{Comparision of Diet p-values}
+% % \begin{figure}[h!]
+% %     \centering
+% %     \includegraphics[natwidth=1, scale = .4]{PvaluesDiet.png}
+% %     \end{figure}
+% % \end{frame}
+% 
+% % 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % \begin{frame}[fragile]
+% % \frametitle{Comparision of Line p-values}
+% % \begin{figure}[h!]
+% %     \centering
+% %     \includegraphics[natwidth=1, scale = .4]{PvaluesLine.png}
+% %     %\caption{-Log(p-value) of Line}
+% %     \end{figure}
+% % \end{frame}
+% % 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % \begin{frame}[fragile]
+% % \frametitle{Comparision of RFI p-values}
+% % \begin{figure}[h!]
+% %     \centering
+% %     \includegraphics[natwidth=1, scale = .4]{PvaluesRFIvalue.png}
+% %     %\caption{-Log(p-value) of Diet}
+% %     \end{figure}
+% % \end{frame}
+% % 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{Model Selection Using  AIC}
+% \begin{frame}[fragile]
+% \frametitle{Model Selection Using  AIC}
+% \begin{itemize}
+% \item \emph{AIC:} Obtain Log Maximum Likelihood and calculate AIC for each gene,
+% \[
+% AIC = -2 Log.Max.Lik + 2 p,
+% \]
+% where $p$ is the number of parameters in the model. 
+% Then, calculate mean of those values across all genes for each model.
+% \end{itemize}
+% 
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % \begin{frame}[fragile]
+% % \frametitle{Estimated Dispersion Parameters, and AIC of Models}
+% % Mean and Median of Estimated Dispersion Parameters, and AIC
+% % <<>>=
+% % load("U:/R/RA/Data/Additional Plot/Model.Selection.QIC.Deviance.Residual.RData")
+% % # res$model <- c(1,2,3,4,5,6,7,8) 
+% % # save(res, file = "U:/R/RA/Data/Additional Plot/Model.Selection.QIC.Deviance.Residual.RData")
+% % #names(res) <- c("model ", "est.disp.mean", "est.disp.median",  "AIC.mean")
+% % res
+% % @
+% % \end{frame}
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% 
+% <<echo=FALSE>>=
+% 
+% aicql <-
+%   c(254.09743480009, 247.186014414358, 247.076309937566, 246.890982693105, 
+%     243.086727310635, 243.520456591509, 243.589321393447, 242.601525323455, 
+%     243.589321393447, 241.781142640803, 240.951447828559, 240.924294553224, 
+%     240.189614988258, 238.558290989328, 238.635833463567, 237.078056292756, 
+%     235.742446580315, 255.639139521706, 251.299567866567, 248.738734362595, 
+%     252.953575771078, 248.182652274894, 241.547730330366, 239.846098780661, 
+%     244.907680600988, 240.740984907204, 238.535003002783, 242.808201793557, 
+%     248.822660679789, 242.706250102576, 239.358860320335, 237.671996687007, 
+%     236.707563474895, 236.707563474895, 248.577126366692, 246.125139178975, 
+%     243.841882811463, 241.597066985525, 240.059069716067, 251.14902530212, 
+%     248.82053699604, 248.973124784279, 250.920989489666, 246.796864880925, 
+%     238.905904442673, 244.282239603957, 244.367236657274, 242.353281253212, 
+%     238.793592170467, 236.940544460193, 240.857807291276, 240.857807291276, 
+%     248.311643543953, 246.391524017405)
+% 
+% 
+% model_ind <- c(19, 35:39, 33, 12, 14, 31, 16, 32 , 17, 47:50, 18, 21, 43, 53, 54, 
+%                46, 25, 30, 28, 51)
+% aicout <- out <- aicql[model_ind]
+% names(aicout) <- names(out) <- as.character(model_ind)
+% aicout[order(aicout)]
+% @
+% 
+% Models with smallest AICs
+% <<echo = FALSE>>=
+% names(out[order(out)])[1:4]
+% @
+% 
+% \end{frame}
+% 
+% 
+% \section{Results}
+% \begin{frame}[fragile]
+% \frametitle{Results of Model 17, 33, 50, and 16}
+% 
+% 
+% <<cach=TRUE,results='asis',message=FALSE,error=FALSE,warning=FALSE>>=
+% library(xtable)
+% library(rattle)
+% ## Number of qvalues less than or equal to .05
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model17.Line/Model17_result.RData")
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model17.Line/Model17_fit.RData")
+% fit17 <- fit
+% 
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
+% #str(counts)
+% ## Number of qvalues less than or equal to .15
+% 
+% pvalue17 <- result$P.values[[3]][,1]
+% 
+% out17 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05)),
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10)),
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15)))
+% 
+% row.names(out17) <- c("qvalue<.05", "qvalue<.10", "qvalue<.15")
+% colnames(out17) <- gsub(".Line", "", colnames(out17))
+% #out17[,3]
+% 
+% res17 <- c(out17[,3], round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][1])
+% #res17
+% gen05.17<- which(result$Q.values[[3]][,1]<=.05)
+% gen10.17<- which(result$Q.values[[3]][,1]<=.10)
+% gen15.17<- which(result$Q.values[[3]][,1]<=.15)
+% ## Number of qvalues less than or equal to .05
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model33.Line.RINb.RINa/Model33_result.RData")
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model33.Line.RINb.RINa/Model33_fit.RData")
+% fit33 <- fit
+% 
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
+% 
+% ## Number of qvalues less than or equal to .15
+% 
+% pvalue33 <- result$P.values[[3]][,1]
+% 
+% out33 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))["Line",],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))["Line",],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))["Line",])
+% 
+% #row.names(out33) <- c("qvalue<.05", "qvalue<.10", "qvalue<.15")
+% 
+% res33 <- c(out33[,3],round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][2])
+% #res33
+% gen05.33 <- which(result$Q.values[[3]][,1]<=.05)
+% gen10.33<- which(result$Q.values[[3]][,1]<=.10)
+% gen15.33<- which(result$Q.values[[3]][,1]<=.15)
+% 
+% ## Number of qvalues less than or equal to .05
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model50.Line.dateRNA/Model50_result.RData")
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model50.Line.dateRNA/Model50_fit.RData")
+% fit50 <- fit
+% 
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
+% 
+% ## Number of qvalues less than or equal to .15
+% 
+% pvalue50 <- result$P.values[[3]][,1]
+% 
+% out50 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))["Line",],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))["Line",],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))["Line",])
+% 
+% 
+% res50 <- c(out50[,3],round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][3])
+% #res50
+% gen05.50<- which(result$Q.values[[3]][,1]<=.05)
+% gen10.50<- which(result$Q.values[[3]][,1]<=.10)
+% gen15.50<- which(result$Q.values[[3]][,1]<=.15)
+% 
+% 
+% 
+% 
+% 
+% ## Number of qvalues less than or equal to .05
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_result.RData")
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_fit.RData")
+% fit16 <- fit
+% 
+% ## Number of qvalues less than or equal to .15
+% 
+% pvalue16 <- result$P.values[[3]][,1]
+% 
+% out16 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))[1,],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))[1,],
+%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))[1,])
+% 
+% row.names(out16) <- c("qvalue <.05", "qvalue <.10", "qvalue <.15")
+% 
+% res16 <- c(out16[,3], round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][4])
+% #res16
+% #str(result$Q.values[[3]][,1])
+% gen05.16<- which(result$Q.values[[3]][,1]<=.05)
+% gen10.16<- which(result$Q.values[[3]][,1]<=.10)
+% gen15.16<- which(result$Q.values[[3]][,1]<=.15)
+% @
+% 
+% <<results='asis',message=FALSE,error=FALSE,warning=FALSE>>=
+% res <- rbind(res17, res33, res50, res16)
+% dimnames(res)[[2]] <- c("qvalue <.05", "qvalue <.10", "qvalue <.15", "estimated m0", "AIC")
+% dimnames(res)[[1]] <- c("M 17", "M 33", "M 50", "M 16")
+% xtable(res, digits = 1)
+% # c(length(gen05.17), length(gen05.33), length(gen05.50), length(gen05.16))
+% # c(length(gen10.17), length(gen10.33), length(gen10.50), length(gen10.16))
+% # c(length(gen15.17), length(gen15.33), length(gen15.50), length(gen15.16))
+% 
+% Line<- structure(c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 
+% 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L), .Label = c("1", 
+% "2"), class = "factor")
+% 
+% #intersect(gen15.17, gen15.16)
+% @
+% 
+% 
+% \end{frame}
+% 
+% \begin{frame}[fragile]
+% \frametitle{List of common DE Genes}
+% List of common DE genes and their log fold change detected by 4 models when FDR is controled at 0.15
+% <<>>=
+% #intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
+% namegene15 <- dimnames(counts)[[1]][intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
+% ]
+% 
+% 
+% log(apply(counts[namegene15, Line == 1]+1, 1, mean)) - 
+%   log(apply(counts[namegene15, Line == 2]+1, 1, mean))
+% 
+% 
+% @
+% 
+% 
+% \end{frame}
+% 
+% 
+% \begin{frame}[fragile]
+% \frametitle{List of union DE Genes}
+% List of all DE genes and their log fold change detected by 4 models when FDR is controled at 0.05
+% <<>>=
+% #intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
+% namegene05 <- dimnames(counts)[[1]][union(union(union(gen05.17, gen05.33), gen05.50), gen05.16)
+% ]
+% 
+% log(apply(counts[namegene05, Line == 1]+1, 1, mean)) - 
+%   log(apply(counts[namegene05, Line == 2]+1, 1, mean))
+% @
+% \end{frame}
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% 
+% \begin{frame}[fragile]
+% \frametitle{P-values of Line-Significant Genes in Model 16}
+% <<>>=
+% 
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_result.RData")
+% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_fit.RData")
+% fit16 <- fit
+% pvalue15 <- result$P.values[[3]][intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16), ]
+% rownames(pvalue15) <- namegene15
+% pvalue15
+% @
+% \end{frame}
+
+\end{document}
