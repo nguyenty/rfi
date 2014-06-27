@@ -82,11 +82,16 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 \item The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts.  
 \end{itemize}
  <<echo=FALSE,include=FALSE>>=
-dir.source <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-source(paste(dir.source, "QL.fit.R",sep=""))
-source(paste(dir.source, "NBDev.R",sep =""))
-source(paste(dir.source, "PoisDev.R",sep =""))
-source(paste(dir.source, "QL.results.R",sep =""))
+# dir.source <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
+# source(paste(dir.source, "QL.fit.R",sep=""))
+# source(paste(dir.source, "NBDev.R",sep =""))
+# source(paste(dir.source, "PoisDev.R",sep =""))
+# source(paste(dir.source, "QL.results.R",sep =""))
+
+source("QL.fit.R")
+source("NBDev.R")
+source("PoisDev.R")
+source("QL.results.R")
 
 # # ### Reading data #######
 # # scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
