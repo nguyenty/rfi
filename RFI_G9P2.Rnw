@@ -59,9 +59,12 @@ require(PASWR)
 \begin{itemize}
 \setlength{\itemsep}{.2in}
 \item[1.] Data Summary
-\item[2.] Models
-\item[3.] Model Selection Using  AIC
-\item[4.] Results
+\item[2.] Model Selection 
+\begin{itemize}
+\item Backward Model Selection
+\item AIC Model Selection
+\end{itemize}
+\item[3.] Results
 \end{itemize}
 }
 
@@ -153,13 +156,13 @@ levels(covset$iddam) <- 1:20
 
 #covset[, c("iddam", "idsire")]
 # #detach(covset)
-# attach(covset)
-# counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
-#                            rowMeans(scount[,-1])>1 & 
-#                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
-#                              rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
-# 
-# 
+ attach(covset)
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>1 & 
+                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+
+
 # dim(scount)
 # dim(counts)
 @
@@ -176,7 +179,7 @@ levels(covset$iddam) <- 1:20
 \setlength{\itemsep}{.25in}
 \item The available metadata consists of infomation of  9 covariates for 31 samples of 31 pigs.
 \item Factors: Diet (2 levels), Line (2 levels), Block (4 levels), Blockorder (8 levels).
-\item Quantitative covariates: RFI, RINb, RINa, Concb, Conca.
+\item Quantitative covariates: RFI (RFI values) , RINb (RIN before globin depletion), RINa (RIN after globin depletion), Concb (RNA Concentration before globin depletion), Conca(RNA Concentration after globin depletion).
 \end{itemize}
 }
 
@@ -209,18 +212,18 @@ levels(covset$iddam) <- 1:20
 % \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Models}
+\section{Model Selection}
 \begin{frame}[fragile]
-\frametitle{Models}
+\frametitle{Backward Model Selection}
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
     \end{figure}
 \end{frame}
 
-\section{Model Selection Using  AIC}
+
 \begin{frame}[fragile]
-\frametitle{Model Selection Using  AIC}
+\frametitle{AIC Model Selection}
 \begin{itemize}
 \item \emph{AIC:} Obtain Log Maximum Likelihood and calculate AIC for each gene,
 \[
@@ -228,177 +231,48 @@ AIC = -2 Log.Max.Lik + 2 p,
 \]
 where $p$ is the number of parameters in the model. 
 Then, calculate mean of those values across all genes for each model.
+
+\item AIC of above models
+<<>>=
+aic <- read.table("model_aic.txt")[-1,]
+
+names(aic) <- paste("M", 2:11, sep = "")
+aic
+@
+\item The best model is Model 11, which is consistent with the Backward Selection method.
 \end{itemize}
 \end{frame}
-% \section{Results}
-% \begin{frame}[fragile]
-% \frametitle{Results of Model 11}
-% 
-% 
-% <<cach=TRUE,results='asis',message=FALSE,error=FALSE,warning=FALSE>>=
-% library(xtable)
-% library(rattle)
-% ## Number of qvalues less than or equal to .05
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model17.Line/Model17_result.RData")
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model17.Line/Model17_fit.RData")
-% fit17 <- fit
-% 
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
-% #str(counts)
-% ## Number of qvalues less than or equal to .15
-% 
-% pvalue17 <- result$P.values[[3]][,1]
-% 
-% out17 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05)),
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10)),
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15)))
-% 
-% row.names(out17) <- c("qvalue<.05", "qvalue<.10", "qvalue<.15")
-% colnames(out17) <- gsub(".Line", "", colnames(out17))
-% #out17[,3]
-% 
-% res17 <- c(out17[,3], round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][1])
-% #res17
-% gen05.17<- which(result$Q.values[[3]][,1]<=.05)
-% gen10.17<- which(result$Q.values[[3]][,1]<=.10)
-% gen15.17<- which(result$Q.values[[3]][,1]<=.15)
-% ## Number of qvalues less than or equal to .05
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model33.Line.RINb.RINa/Model33_result.RData")
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model33.Line.RINb.RINa/Model33_fit.RData")
-% fit33 <- fit
-% 
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
-% 
-% ## Number of qvalues less than or equal to .15
-% 
-% pvalue33 <- result$P.values[[3]][,1]
-% 
-% out33 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))["Line",],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))["Line",],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))["Line",])
-% 
-% #row.names(out33) <- c("qvalue<.05", "qvalue<.10", "qvalue<.15")
-% 
-% res33 <- c(out33[,3],round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][2])
-% #res33
-% gen05.33 <- which(result$Q.values[[3]][,1]<=.05)
-% gen10.33<- which(result$Q.values[[3]][,1]<=.10)
-% gen15.33<- which(result$Q.values[[3]][,1]<=.15)
-% 
-% ## Number of qvalues less than or equal to .05
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model50.Line.dateRNA/Model50_result.RData")
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model50.Line.dateRNA/Model50_fit.RData")
-% fit50 <- fit
-% 
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/counts.RData")
-% 
-% ## Number of qvalues less than or equal to .15
-% 
-% pvalue50 <- result$P.values[[3]][,1]
-% 
-% out50 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))["Line",],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))["Line",],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))["Line",])
-% 
-% 
-% res50 <- c(out50[,3],round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][3])
-% #res50
-% gen05.50<- which(result$Q.values[[3]][,1]<=.05)
-% gen10.50<- which(result$Q.values[[3]][,1]<=.10)
-% gen15.50<- which(result$Q.values[[3]][,1]<=.15)
-% 
-% 
-% 
-% 
-% 
-% ## Number of qvalues less than or equal to .05
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_result.RData")
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_fit.RData")
-% fit16 <- fit
-% 
-% ## Number of qvalues less than or equal to .15
-% 
-% pvalue16 <- result$P.values[[3]][,1]
-% 
-% out16 <- rbind(sapply(result$Q.values, FUN = function(qval)colSums(qval<=.05))[1,],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.10))[1,],
-%       sapply(result$Q.values, FUN = function(qval)colSums(qval<=.15))[1,])
-% 
-% row.names(out16) <- c("qvalue <.05", "qvalue <.10", "qvalue <.15")
-% 
-% res16 <- c(out16[,3], round(length(result$P.values[[3]][,1]) - result$m0)[3,1], out[order(out)][4])
-% #res16
-% #str(result$Q.values[[3]][,1])
-% gen05.16<- which(result$Q.values[[3]][,1]<=.05)
-% gen10.16<- which(result$Q.values[[3]][,1]<=.10)
-% gen15.16<- which(result$Q.values[[3]][,1]<=.15)
-% @
-% 
-% <<results='asis',message=FALSE,error=FALSE,warning=FALSE>>=
-% res <- rbind(res17, res33, res50, res16)
-% dimnames(res)[[2]] <- c("qvalue <.05", "qvalue <.10", "qvalue <.15", "estimated m0", "AIC")
-% dimnames(res)[[1]] <- c("M 17", "M 33", "M 50", "M 16")
-% xtable(res, digits = 1)
-% # c(length(gen05.17), length(gen05.33), length(gen05.50), length(gen05.16))
-% # c(length(gen10.17), length(gen10.33), length(gen10.50), length(gen10.16))
-% # c(length(gen15.17), length(gen15.33), length(gen15.50), length(gen15.16))
-% 
-% Line<- structure(c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 
-% 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L), .Label = c("1", 
-% "2"), class = "factor")
-% 
-% #intersect(gen15.17, gen15.16)
-% @
-% 
-% 
-% \end{frame}
-% 
-% \begin{frame}[fragile]
-% \frametitle{List of common DE Genes}
-% List of common DE genes and their log fold change detected by 4 models when FDR is controled at 0.15
-% <<>>=
-% #intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
-% namegene15 <- dimnames(counts)[[1]][intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
-% ]
-% 
-% 
-% log(apply(counts[namegene15, Line == 1]+1, 1, mean)) - 
-%   log(apply(counts[namegene15, Line == 2]+1, 1, mean))
-% 
-% 
-% @
-% 
-% 
-% \end{frame}
-% 
-% 
-% \begin{frame}[fragile]
-% \frametitle{List of union DE Genes}
-% List of all DE genes and their log fold change detected by 4 models when FDR is controled at 0.05
-% <<>>=
-% #intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16)
-% namegene05 <- dimnames(counts)[[1]][union(union(union(gen05.17, gen05.33), gen05.50), gen05.16)
-% ]
-% 
-% log(apply(counts[namegene05, Line == 1]+1, 1, mean)) - 
-%   log(apply(counts[namegene05, Line == 2]+1, 1, mean))
-% @
-% \end{frame}
-% 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% 
-% \begin{frame}[fragile]
-% \frametitle{P-values of Line-Significant Genes in Model 16}
-% <<>>=
-% 
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_result.RData")
-% load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/result/Model16.Line.RFI/Model16_fit.RData")
-% fit16 <- fit
-% pvalue15 <- result$P.values[[3]][intersect(intersect(intersect(gen15.17, gen15.33), gen15.50), gen15.16), ]
-% rownames(pvalue15) <- namegene15
-% pvalue15
-% @
-% \end{frame}
+\section{Results}
+\begin{frame}[fragile]
+\frametitle{Results of Model 11}
+\begin{itemize}
+\item 
+Estimated number of DE Genes between two RFI Lines
+<<>>=
+load("Model11_fit.RData")
+load("Model11_result.RData")
+dim(result$Q.values[[3]])[1]- result$m0[3,1]
+@
+
+\item When FDR is controlled at 0.05, 0.10, 0.15, the number of DE Genes between two RFI Lines (DEGs) and the number of DE Genes between two RFI Lines with log(fold change) at least 1 (log(FC) $>1$) are shown in the table below
+<<results ='asis'>>=
+degene <- c(sum(result$Q.values[[3]][,"Line"]<=0.05),
+sum(result$Q.values[[3]][,"Line"]<=0.1),
+sum(result$Q.values[[3]][,"Line"]<=0.15))
+
+degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)
+degene10 <- which(result$Q.values[[3]][,"Line"]<=0.10)
+degene15 <- which(result$Q.values[[3]][,"Line"]<=0.15)
+
+lf1 <- c(sum(abs(log(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1),
+sum(abs(log(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1),
+sum(abs(log(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1))
+
+out <- data.frame(FDR =c(0.05, 0.10, 0.15), degene = degene, lf1 = lf1)
+colnames(out) <- c("FDR", "DEGs", "log(FC)>1")
+xtable(out)
+@
+\end{itemize}
+\end{frame}
 
 \end{document}
