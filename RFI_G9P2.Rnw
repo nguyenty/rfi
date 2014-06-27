@@ -81,22 +81,7 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 
 \item The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts.  
 \end{itemize}
- <<echo=FALSE,include=FALSE>>=
-### Reading data #######
-covset <- read.csv("covset.csv")
-attach(covset)
-scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
-                     header = T)
-
-counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
-                           rowMeans(scount[,-1])>1 & 
-                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
-                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
-
-
-# dim(scount)
-# dim(counts)
-@
+ 
 
 \end{frame}
 
@@ -160,6 +145,17 @@ dim(result$Q.values[[3]])[1]- result$m0[3,1]
 
 \item When FDR is controlled at 0.05, 0.10, 0.15, the number of DE Genes between two RFI Lines (DEGs) and the number of DE Genes between two RFI Lines with log(fold change) at least 1 (log(FC) $>1$) are shown in the table below
 <<results ='asis'>>=
+### Reading data #######
+covset <- read.csv("covset.csv")
+attach(covset)
+scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+                     header = T)
+
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>1 & 
+                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+
 degene <- c(sum(result$Q.values[[3]][,"Line"]<=0.05),
 sum(result$Q.values[[3]][,"Line"]<=0.1),
 sum(result$Q.values[[3]][,"Line"]<=0.15))
