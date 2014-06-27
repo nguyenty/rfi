@@ -82,86 +82,12 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 \item The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts.  
 \end{itemize}
  <<echo=FALSE,include=FALSE>>=
-# dir.source <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-# source(paste(dir.source, "QL.fit.R",sep=""))
-# source(paste(dir.source, "NBDev.R",sep =""))
-# source(paste(dir.source, "PoisDev.R",sep =""))
-# source(paste(dir.source, "QL.results.R",sep =""))
-
-source("QL.fit.R")
-source("NBDev.R")
-source("PoisDev.R")
-source("QL.results.R")
-
-# # ### Reading data #######
-# # scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
-# #                      header = T)
-# # cbc <- read.table('/home/ntyet/research/RFI-newdata/Data for Yet/CBC data for pigs with RNA-seq data avaible.txt',
-# #                   header =T)
-# # 
-# # metadata <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/meta_data_RNA-seq_G9P2.txt", 
-# #                        header = T)
-# # 
-# # rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
-# #                      header = T)
-# 
-# 
 ### Reading data #######
+covset <- read.csv("covset.csv")
+attach(covset)
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
-cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
-                  header =T)
 
-metadata <- read.table("meta_data_RNA-seq_G9P2.txt", 
-                       header = T)
-
-rfiadj <- read.csv("g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
-                     header = T)
-# resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
-# #resultdir <- "U:/R/RA/Data/RFI-newdata/result"
-# # scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
-# #                      header = T)
-# # cbc <- read.table(paste(resultdir, "/rfi/CBC data for pigs with RNA-seq data avaible.txt", sep = ""),
-# #                   header =T)
-# # 
-# # metadata <- read.table("meta_data_RNA-seq_G9P2.txt", 
-# #                        header = T)
-# # 
-# # rfiadj <- read.csv("g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
-# #                    header = T)
-# 
-##### cleaning data####
-
-cbc <- cbc[order(cbc$ear), ]
-metadata <- metadata[order(metadata$idpig), ]
-rfiadj <- rfiadj[order(rfiadj$idpig),]
-
-fullidpig <- as.numeric(paste("20900", metadata$idpig, sep = ""))
-
-covset <- cbind(metadata[, -4], rfiadj[rfiadj$idpig %in% fullidpig, c("rfi.ADJUSTED")], 
-                cbc[, c("iddam", "idsire", "Neutrophil", "Lymphocyte", "Monocyte",
-                        "Eosinophil", "Basophil" )])
-colnames(covset) <- c("idpig", "Line", "Diet",  "Block", "Blockorder", "Concb", 
-                      "RINb", "Conca", "RINa", "RFI",
-                      "iddam", "idsire", "neut",   
-                      "lymp", "mono","eosi", "baso")
-
-#####set of covariates considered ####
-covset <- cbind(covset, lneut = log(covset$neut), llymp = log(covset$lymp), 
-                lmono = log(covset$mono), leosi = log(covset$eosi), 
-                lbaso = log(covset$baso)) 
-covset$Line <- as.factor(covset$Line)
-covset$Diet <- as.factor(covset$Diet)
-covset$Block <- as.factor(covset$Block)
-covset$Blockorder <- as.factor(covset$Blockorder)
-covset$iddam <- as.factor(covset$iddam)
-covset$idsire <- as.factor(covset$idsire)
-levels(covset$idsire) <- 1:11
-levels(covset$iddam) <- 1:20
-
-#covset[, c("iddam", "idsire")]
-# #detach(covset)
- attach(covset)
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>1 & 
                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
@@ -188,33 +114,6 @@ counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
 \end{itemize}
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \begin{frame}
-% \frametitle{Goals of the Analysis}
-% \begin{itemize}
-% \setlength{\itemsep}{.25in}
-% \item Identify genes that are differentially expressed between Diets, Lines and/or show Diet$\times$Line  interaction.
-% \item Identify genes associated with RFI values.
-% \item Account for effects of other covariates and factors on the RNA data.
-% \end{itemize}
-% \end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%
-% 
-% \begin{frame}
-% \frametitle{Analyze RNA Data Using Quasi-Likelihood Method}
-% \begin{itemize}
-% \setlength{\itemsep}{.25in}
-% \item To accomplish these goals, we use Quasi-likelihood with shrunken dispersion estimates proposed by S. Lund et al.\ (\emph{Statistical Applications in Genetics and Molecular Biology}, 2012).
-% 
-% \item Considering various design matrices that include different sets of covariates, we obtain a histogram of $p$-values for each factor and covariate of each model.
-% 
-% % \item Compare $p$-values of Diet, Line, RFI.value for those models.
-% % 
-% % \item Compute mean and median of estimated dispersion parameters, and AIC for each model, to choose the "best" model among examined models.
-% \end{itemize}
-% \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model Selection}
