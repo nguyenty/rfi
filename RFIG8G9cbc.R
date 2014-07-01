@@ -25,7 +25,7 @@ source(paste(dir.source, "QL.results.R",sep =""))
 #                      header = T)
 
 #resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
-resultdir <- "U:/R/RA/Data/RFI-newdata/result"
+resultdir <- "U:/R/RA/Data/RFI-newdata/result3"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
@@ -72,6 +72,14 @@ covset[, c("iddam", "idsire")]
 #detach(covset)
 attach(covset)
 
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                             rowMeans(scount[,-1])>8 & 
+                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+dim(counts)
+dim(scount)
+dim(counts)
+log.offset <- log(apply(counts, 2, quantile, .75))
 ###List of models function ####
 ### Case 1: no cbc data ####
 # dim(covset)
@@ -115,15 +123,8 @@ AIC.QL <- function(counts,QL.fit.object){
   return(dev-2*L0+2*p)
 }
 
-counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
-                           rowMeans(scount[,-1])>1 & 
-                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
-                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
 
 
-dim(scount)
-dim(counts)
-log.offset <- log(apply(counts, 2, quantile, .75))
 ###############
 
 list_model <- function(full_model){
@@ -272,6 +273,24 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
               AIC_model = mean(AIC.QL(counts, fit))))
 }
 
+
+### check correlation of cbc data####
+#pairs(cbind(lneut, llymp, lmono, leosi, lbaso))
+
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+pairs(cbind(lneut, llymp, lmono, leosi, lbaso)), lower.panel = panel.smooth, upper.panel = panel.cor
+
+
+
 # Model 1
 m <- 1
 model_th <- m
@@ -297,9 +316,9 @@ proc.time() -pm1
 # Model 2
 m <- 2
 model_th <- m
-full_model <- model.matrix(~Line*Diet*RFI + Concb + 
-                             RINb + Conca + RINa + 
-                             Block + Blockorder)
+full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
