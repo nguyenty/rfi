@@ -287,7 +287,7 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
   if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
   text(0.5, 0.5, txt, cex = cex.cor * r)
 }
-pairs(cbind(lneut, llymp, lmono, leosi, lbaso)), lower.panel = panel.smooth, upper.panel = panel.cor
+pairs(cbind(lneut, llymp, lmono, leosi, lbaso), lower.panel = panel.smooth, upper.panel = panel.cor)
 
 
 
@@ -364,8 +364,8 @@ proc.time() -pm1
 # Model 4
 m <- 4
 model_th <- m
-full_model <- model.matrix(~Line*Diet*RFI + Concb + 
-                             RINb + RINa + 
+full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + RINa + 
+                             lneut + llymp + lmono + lbaso + 
                              Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
