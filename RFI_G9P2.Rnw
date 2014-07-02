@@ -44,7 +44,7 @@ require(xtable)
 require(PASWR)
 @
 
-\title[RNASeq Analysis]{Analyze RNASeq Data from G9P2 RFI Lines Using QuasiSeq Package}
+\title[RNASeq Analysis]{Analyze RNASeq Data from G9P2 RFI (Residual Feed Intake) Lines Using QuasiSeq Package}
 
 
 % \author[Yet Nguyen, Dan Nettleton]{Yet Nguyen \and Dan Nettleton}
@@ -74,12 +74,11 @@ require(PASWR)
 \frametitle{RNASeq Data Summary}
 \begin{itemize}
 \setlength{\itemsep}{.25in}
-\item RNASeq data set is a  25320 $\times$ 31 table of count data  corresponding to 25320 genes of 31  pigs from 2 Lines (high RFI Line and low RFI Line) and 2 Diets (high energy Diet 1 and low energy Diet 2).
+\item RNASeq data set is a  25320 $\times$ 31 table of count data  corresponding to 25320 genes of 31  pigs from 2 Lines: high RFI Line and low RFI Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet 2).
 
 \item  For Diet 1, the RNA data are from 7 low RFI line pigs and 8  high RFI line pigs. 
 For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
-
-\item The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts.  
+ 
 \end{itemize}
  
 
@@ -96,6 +95,20 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 \item The available metadata consists of infomation of  9 covariates for 31 samples of 31 pigs.
 \item Factors: Diet (2 levels), Line (2 levels), Block (4 levels), Blockorder (8 levels).
 \item Quantitative covariates: RFI (RFI values) , RINb (RIN before globin depletion), RINa (RIN after globin depletion), Concb (RNA Concentration before globin depletion), Conca(RNA Concentration after globin depletion).
+\item Possible CBC (Complete Blood Count) data:  neutrophils, lymphocytes, monocytes, eosinophils, and basophils. The CBC covariates are in model in the form of log transformation.
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+\frame{
+\frametitle{Number of Genes Used in Analysis}
+\begin{itemize}
+
+\setlength{\itemsep}{.25in}
+
+\item Models with metadata covariates and without CBC covariates: The number of genes analyzed is 15058. Those are genes with average counts greater than one and for which there are at least four samples with non-zero counts. 
+
+\item Models with metadata covariates and without CBC covariates: The number of genes analyzed is 12222. Those are genes with average counts greater than 8 and for which there are at least four samples with non-zero counts. 
 \end{itemize}
 }
 
@@ -103,7 +116,7 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model Selection}
 \begin{frame}[fragile]
-\frametitle{Backward Model Selection}
+\frametitle{Backward Model Selection (Without CBC Covariates)}
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
@@ -112,7 +125,7 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 
 
 \begin{frame}[fragile]
-\frametitle{AIC Model Selection}
+\frametitle{AIC Model Selection (Without CBC covariates)}
 \begin{itemize}
 \item \emph{AIC:} Obtain Log Maximum Likelihood and calculate AIC for each gene,
 \[
@@ -133,7 +146,7 @@ aic
 \end{frame}
 \section{Results}
 \begin{frame}[fragile]
-\frametitle{Results of Model 11}
+\frametitle{Results of Model 11 (Without CBC covariates)}
 \begin{itemize}
 \item 
 Estimated number of DE Genes between two RFI Lines
@@ -186,5 +199,15 @@ xtable(out)
 @
 \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Backward Model Selection (With CBC Covariates)}
+\begin{figure}[h!]
+    \centering
+    %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
+    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbc.pdf}
+    \end{figure}
+\end{frame}
+
 
 \end{document}
