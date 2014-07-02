@@ -341,8 +341,8 @@ proc.time() -pm1
 # Model 3
 m <- 3
 model_th <- m
-full_model <- model.matrix(~Line*Diet*RFI + Concb + 
-                             RINb + Conca + RINa + 
+full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
