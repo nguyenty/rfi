@@ -1,4 +1,4 @@
-\documentclass[landscape,a2paper, onecolumn]{paper}
+\documentclass[landscape,a1paper, onecolumn]{paper}
 %\usepackage{pdflscape}
 \usepackage{url}
 % \documentclass[a0]{sciposter}
@@ -23,26 +23,21 @@
 \usepackage[table]{xcolor}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\def \dirrtw {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model2.Line.Diet.RFI.Concb.RINb.Conca.RINa.Block.Blockorder.LineDiet.LineRFI.DietRFI.LineDietRFI/}
-\def \dirrth {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model3.Line.Diet.RFI.Concb.RINb.Conca.RINa.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
- \def \dirrfo {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model4.Line.Diet.RFI.Concb.RINb.RINa.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
- \def \dirrfi {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model5.Line.Diet.RFI.Concb.RINa.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
- \def \dirrsi {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model6.Line.Diet.RFI.Concb.RINa.Block.LineDiet.DietRFI.LineRFI/}
- 
- \def \dirrse {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model7.Line.Diet.RFI.Concb.RINa.Block.DietRFI.LineRFI/}
- 
- \def \dirrei {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model8.Line.RFI.Concb.RINa.Block.DietRFI.LineRFI/}
- 
- \def \dirrni {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model9.Line.Concb.RINa.Block.DietRFI.LineRFI/}
+\def \dirron {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result3/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder.LineDiet.LineRFI.DietRFI.LineDietRFI/}
 
-\def \dirrte {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model10.Line.Concb.RINa.Block.DietRFI/}
+\def \dirrtw {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result3/Model2.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
 
- \def \dirrel {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result/Model11.Line.Concb.RINa.Block/}
+\def \dirrth {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result3/Model3.Line.Diet.RFI.Concb.RINb.RINa.lneut.llymp.lmono.leosi.lbaso.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
+
+\def \dirrfo {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result3/Model4.Line.Diet.RFI.Concb.RINb.RINa.lneut.llymp.lmono.lbaso.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
+
+\def \dirrfi {/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result3/Model5.Line.Diet.RFI.Concb.RINa.lneut.llymp.lmono.lbaso.Block.LineDiet.LineRFI.DietRFI.LineDietRFI/}
+
 \begin{document}
 \begin{table}
 \Huge
 \centering
-\begin{tabular}{cccccccccccccc}
+\begin{tabular}{ccccccccccccccccccc}
       {\Huge \textbf{M}} 
       & {\Huge\textbf{ Line}} 
       &{\Huge \textbf{Diet}} 
@@ -56,10 +51,39 @@
       &{\Huge \textbf{Concb} } 
       &{\Huge \textbf{Conca} }
       &{\Huge \textbf{Block}} 
-      &{\Huge \textbf{Blockorder}}\\[5pt]
+      &{\Huge \textbf{Blockorder}}
+      &{\Huge \textbf{logNeut}}
+      &{\Huge \textbf{logLymp}}
+      &{\Huge \textbf{logMono}}
+      &{\Huge \textbf{logEosi}}
+      &{\Huge \textbf{logBaso}}
+      \\[5pt]
       \hline
       \\[5pt]
-      {\Huge \textbf{2}} 
+      {\Huge \textbf{1}} 
+      &\includegraphics[scale=.122]{\dirron Model1Line.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1Diet.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1RFI.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1LineDiet.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1LineRFI.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1DietRFI.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1LineDietRFI.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1RINb.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1RINa.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1Concb.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1Conca.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1Block.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1Blockorder.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1lneut.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1llymp.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1lmono.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1leosi.pdf}
+      &\includegraphics[scale=.122]{\dirron Model1lbaso.pdf}
+     \\[5pt]
+     \hline
+     
+     
+     {\Huge \textbf{2}} 
       &\includegraphics[scale=.122]{\dirrtw Model2Line.pdf}
       &\includegraphics[scale=.122]{\dirrtw Model2Diet.pdf}
       &\includegraphics[scale=.122]{\dirrtw Model2RFI.pdf}
@@ -72,11 +96,16 @@
       &\includegraphics[scale=.122]{\dirrtw Model2Concb.pdf}
       &\includegraphics[scale=.122]{\dirrtw Model2Conca.pdf}
       &\includegraphics[scale=.122]{\dirrtw Model2Block.pdf}
-      &\includegraphics[scale=.122]{\dirrtw Model2Blockorder.pdf}
+      &
+      &\includegraphics[scale=.122]{\dirrtw Model2lneut.pdf}
+      &\includegraphics[scale=.122]{\dirrtw Model2llymp.pdf}
+      &\includegraphics[scale=.122]{\dirrtw Model2lmono.pdf}
+      &\includegraphics[scale=.122]{\dirrtw Model2leosi.pdf}
+      &\includegraphics[scale=.122]{\dirrtw Model2lbaso.pdf}
      \\[5pt]
      \hline
-     \\[5pt]
-     {\Huge \textbf{3}} 
+     
+      {\Huge \textbf{3}} 
       &\includegraphics[scale=.122]{\dirrth Model3Line.pdf}
       &\includegraphics[scale=.122]{\dirrth Model3Diet.pdf}
       &\includegraphics[scale=.122]{\dirrth Model3RFI.pdf}
@@ -87,12 +116,17 @@
       &\includegraphics[scale=.122]{\dirrth Model3RINb.pdf}
       &\includegraphics[scale=.122]{\dirrth Model3RINa.pdf}
       &\includegraphics[scale=.122]{\dirrth Model3Concb.pdf}
-      &\includegraphics[scale=.122]{\dirrth Model3Conca.pdf}
+      &
       &\includegraphics[scale=.122]{\dirrth Model3Block.pdf}
       &
+      &\includegraphics[scale=.122]{\dirrth Model3lneut.pdf}
+      &\includegraphics[scale=.122]{\dirrth Model3llymp.pdf}
+      &\includegraphics[scale=.122]{\dirrth Model3lmono.pdf}
+      &\includegraphics[scale=.122]{\dirrth Model3leosi.pdf}
+      &\includegraphics[scale=.122]{\dirrth Model3lbaso.pdf}
      \\[5pt]
      \hline
-     \\[5pt]
+     
      {\Huge \textbf{4}} 
       &\includegraphics[scale=.122]{\dirrfo Model4Line.pdf}
       &\includegraphics[scale=.122]{\dirrfo Model4Diet.pdf}
@@ -107,9 +141,15 @@
       &
       &\includegraphics[scale=.122]{\dirrfo Model4Block.pdf}
       &
+      &\includegraphics[scale=.122]{\dirrfo Model4lneut.pdf}
+      &\includegraphics[scale=.122]{\dirrfo Model4llymp.pdf}
+      &\includegraphics[scale=.122]{\dirrfo Model4lmono.pdf}
+      &
+      &\includegraphics[scale=.122]{\dirrfo Model4lbaso.pdf}
      \\[5pt]
      \hline
-     \\[5pt]
+     
+     
      {\Huge \textbf{5}} 
       &\includegraphics[scale=.122]{\dirrfi Model5Line.pdf}
       &\includegraphics[scale=.122]{\dirrfi Model5Diet.pdf}
@@ -124,108 +164,16 @@
       &
       &\includegraphics[scale=.122]{\dirrfi Model5Block.pdf}
       &
+      &\includegraphics[scale=.122]{\dirrfi Model5lneut.pdf}
+      &\includegraphics[scale=.122]{\dirrfi Model5llymp.pdf}
+      &\includegraphics[scale=.122]{\dirrfi Model5lmono.pdf}
+      &
+      &\includegraphics[scale=.122]{\dirrfi Model5lbaso.pdf}
      \\[5pt]
      \hline
-     \\[5pt]
-     {\Huge \textbf{6}} 
-      &\includegraphics[scale=.122]{\dirrsi Model6Line.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6Diet.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6RFI.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6LineDiet.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6LineRFI.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6DietRFI.pdf}
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrsi Model6RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrsi Model6Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrsi Model6Block.pdf}
-      &
-     \\[5pt]
-     \hline
-     \\[5pt]
-     {\Huge \textbf{7}} 
-      &\includegraphics[scale=.122]{\dirrse Model7Line.pdf}
-      &\includegraphics[scale=.122]{\dirrse Model7Diet.pdf}
-      &\includegraphics[scale=.122]{\dirrse Model7RFI.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrse Model7LineRFI.pdf}
-      &\includegraphics[scale=.122]{\dirrse Model7DietRFI.pdf}
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrse Model7RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrse Model7Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrse Model7Block.pdf}
-      &
-     \\[5pt]
-     \hline
-     \\[5pt]
-     {\Huge \textbf{8}} 
-      &\includegraphics[scale=.122]{\dirrei Model8Line.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrei Model8RFI.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrei Model8LineRFI.pdf}
-      &\includegraphics[scale=.122]{\dirrei Model8DietRFI.pdf}
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrei Model8RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrei Model8Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrei Model8Block.pdf}
-      &
-     \\[5pt]
-     \hline
-     \\[5pt]
-     {\Huge \textbf{9}} 
-      &\includegraphics[scale=.122]{\dirrni Model9Line.pdf}
-      &
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrni Model9LineRFI.pdf}
-      &\includegraphics[scale=.122]{\dirrni Model9DietRFI.pdf}
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrni Model9RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrni Model9Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrni Model9Block.pdf}
-      &
-     \\[5pt]
-     \hline
-     \\[5pt]
-     {\Huge \textbf{10}} 
-      &\includegraphics[scale=.122]{\dirrte Model10Line.pdf}
-      &
-      &
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrte Model10DietRFI.pdf}
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrte Model10RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrte Model10Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrte Model10Block.pdf}
-      &
-     \\[5pt]
-     \hline
-     \\[5pt]
-     {\Huge \textbf{11}} 
-      &\includegraphics[scale=.122]{\dirrel Model11Line.pdf}
-      &
-      &
-      &
-      &
-      &
-      &
-      &
-      &\includegraphics[scale=.122]{\dirrel Model11RINa.pdf}
-      &\includegraphics[scale=.122]{\dirrel Model11Concb.pdf}
-      &
-      &\includegraphics[scale=.122]{\dirrel Model11Block.pdf}
-      &
+     
+     
+     
      \\[5pt]
      \hline
 \end{tabular}
