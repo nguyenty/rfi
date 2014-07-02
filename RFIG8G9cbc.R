@@ -462,10 +462,11 @@ proc.time() -pm1
 # Model 8
 m <- 8
 model_th <- m
-full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
-                             RINa + 
-                             Block)[, -3]
+full_model <- model.matrix(~Diet*RFI + Line*RFI + Concb +  RINa + 
+                             lneut + llymp + lmono + lbaso + 
+                             Block)[,-3] # exclude RFI covariate
 #rankMatrix(full_model)
+# colnames(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 
