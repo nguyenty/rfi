@@ -243,7 +243,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
                 Model = "NegBin")
   result<- QL.results(fit, Plot = FALSE)
   k <- nrow(test.mat)
-  name_model <- NULL
+  name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
   model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
   dir.create(model_dir, showWarnings = FALSE)
@@ -557,6 +557,32 @@ get(paste("mean", model_th, sep = "_" ))
 
 proc.time() -pm1 
 
+
+
+## Model 100
+
+model_th <- 100
+full_model <- model.matrix(~Line*Diet)
+
+design.list <- vector("list",4)
+design.list[[1]] <- full_model
+Cdiet <- matrix(c(1, 0, 0, 
+              0, 1, 0, 
+              0, 0, 1,
+              0, -2, 0), nrow = 4, byrow = T)
+design.list[[2]] <- full_model%*% Cdiet
+Cline <- matrix(c(1, 0, 0, 
+                           0, 1, 0, 
+                           0, 0, 1,
+                           0, 0, -2), nrow = 4, byrow = T)
+
+design.list[[3]] <- full_model%*% Cline
+
+design.list[[4]] <- model.matrix(~Line+Diet)
+
+test.mat <- rbind(c(1,2), c(1,3), c(1,4))
+rownames(test.mat) <- c("Diet", "Line", "LineDiet")
+
 list_out <- list_model(full_model)
 design.list <- list_out$design.list
 test.mat <- list_out$test.mat
@@ -586,3 +612,4 @@ names(model_aic) <- paste("M", 1:11, sep = "")
 
 write.table(model_aic, file = "model_aic.txt")
 save(model_aic, file = "model_aic.RData")
+
