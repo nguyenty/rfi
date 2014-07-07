@@ -603,6 +603,47 @@ test.mat <- rbind(c(1,2))
 rownames(test.mat) <- c("LineDietRFI")
 
 
+
+
+#colnames(full_model)
+#rankMatrix(full_model)
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+
+assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
+get(paste("AICQL", model_th, sep = "_" ))
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+
+assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
+get(paste("mean", model_th, sep = "_" ))
+
+proc.time() -pm1 
+
+
+
+
+# Model 102
+m <- 102
+model_th <- m
+full_model <- model.matrix(~Line*Diet + RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
+design.list <- vector("list",2)
+design.list[[1]] <- full_model
+
+design.list[[2]] <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                                   lneut + llymp + lmono + leosi + lbaso + 
+                                   Block + Blockorder)
+
+test.mat <- rbind(c(1,2))
+rownames(test.mat) <- c("LineDiet")
+
+
+
+
 #colnames(full_model)
 #rankMatrix(full_model)
 pm1 <- proc.time()
