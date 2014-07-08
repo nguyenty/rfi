@@ -568,14 +568,14 @@ proc.time() -pm1
 # Model 9
 m <- 9
 model_th <- m
-full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
-                             RINa + 
-                             Block)[, -c(3,4)]
-#colnames(full_model)
+full_model <- model.matrix(~Line + Concb + RINa + 
+                             lneut + llymp + 
+                             Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
-
+assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
+get(paste("pvalue05", model_th, sep = "_" ))
 assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
 get(paste("AICQL", model_th, sep = "_" ))
 
