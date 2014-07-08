@@ -401,8 +401,6 @@ get(paste("mean", model_th, sep = "_" ))
 
 proc.time() -pm1 
 
-
-
 # Model 5
 m <- 5
 model_th <- m
@@ -430,18 +428,20 @@ get(paste("mean", model_th, sep = "_" ))
 proc.time() -pm1 
 
 
-
-
 # Model 6
 m <- 6
 model_th <- m
 
-full_model <- model.matrix(~Line*Diet + Diet*RFI + Line*RFI + Concb +  RINa + 
-                             lneut + llymp + lmono + lbaso + 
+full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
+                             lneut + llymp + lmono +  
                              Block)
+
+
 #rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
+assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
+get(paste("pvalue05", model_th, sep = "_" ))
 
 assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
 get(paste("AICQL", model_th, sep = "_" ))
