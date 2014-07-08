@@ -378,12 +378,16 @@ proc.time() -pm1
 # Model 4
 m <- 4
 model_th <- m
-full_model <- model.matrix(~Line*Diet*RFI + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono  + 
                              Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
+out_model$pvalue_05
+
+assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
+get(paste("pvalue05", model_th, sep = "_" ))
 
 assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
 get(paste("AICQL", model_th, sep = "_" ))
@@ -402,12 +406,17 @@ proc.time() -pm1
 # Model 5
 m <- 5
 model_th <- m
-full_model <- model.matrix(~Line*Diet*RFI + Concb +  RINa + 
-                             lneut + llymp + lmono + lbaso + 
+full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + 
+                             RINa + 
+                             lneut + llymp + lmono  + 
                              Block)
 #rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
+out_model$pvalue_05
+
+assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
+get(paste("pvalue05", model_th, sep = "_" ))
 
 assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
 get(paste("AICQL", model_th, sep = "_" ))
