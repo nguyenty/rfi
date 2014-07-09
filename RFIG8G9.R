@@ -71,7 +71,8 @@ levels(covset$iddam) <- 1:20
 covset[, c("iddam", "idsire")]
 #detach(covset)
 attach(covset)
-
+#covset <- read.csv("covset.csv")
+str(covset)
 ###List of models function ####
 ### Case 1: no cbc data ####
 # dim(covset)
@@ -565,3 +566,8 @@ names(model_aic) <- paste("M", 1:11, sep = "")
 
 write.table(model_aic, file = "model_aic.txt")
 save(model_aic, file = "model_aic.RData")
+
+
+f1 <- as.factor(rep(c(1, 2), each = 6))
+f2 <- as.factor(rep(rep(c(1,2), times = c(3,3)), 2))
+model.matrix(~f1*f2)
