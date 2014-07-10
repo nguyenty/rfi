@@ -12,19 +12,6 @@ source(paste(dir.source, "NBDev.R",sep =""))
 source(paste(dir.source, "PoisDev.R",sep =""))
 source(paste(dir.source, "QL.results.R",sep =""))
 
-### Reading data #######
-# scount <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/single end uniquely mapped reads count table for Yet.txt", 
-#                      header = T)
-# cbc <- read.table('/home/ntyet/research/RFI-newdata/Data for Yet/CBC data for pigs with RNA-seq data avaible.txt',
-#                   header =T)
-# 
-# metadata <- read.table("/home/ntyet/research/RFI-newdata/Data for Yet/meta_data_RNA-seq_G9P2.txt", 
-#                        header = T)
-# 
-# rfiadj <- read.csv("/home/ntyet/research/RFI-newdata/Data for Yet/g8p2_g9p2-rfiadj-FINAL_Jan_2014_rfiadjusted.csv", 
-#                      header = T)
-
-#resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/result"
 resultdir <- "U:/R/RA/Data/RFI-newdata/result4"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -589,37 +576,6 @@ get(paste("mean", model_th, sep = "_" ))
 proc.time() -pm1 
 
 
-
-# Model 10
-m <- 10
-model_th <- m
-full_model <- model.matrix(~Line + Diet + Diet*RFI + Line*RFI + Concb + 
-                             RINa + 
-                             Block)[, -c(3,4,11)]
-#colnames(full_model)
-#rankMatrix(full_model)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-# Model 11
-m <- 11
-model_th <- m
-full_model <- model.matrix(~Line + Concb + 
-                             RINa + 
-                             Block)
 #colnames(full_model)
 #rankMatrix(full_model)
 pm1 <- proc.time()
