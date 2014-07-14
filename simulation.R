@@ -4,11 +4,15 @@ load("Model7_fit.RData")
 str(fit)
 str(fit$coef)
 colnames(fit$coef)
-
+pairs(fit$coef)
 str(fit$LRT)
 colnames(fit$LRT)
+
+str(result$P.values[[3]])
+pairs(result$P.values[[3]])
 # intercept
 hist(fit$coef[,1], nclass = 100)
+
 # Line2
 
 hist(fit$coef[,2], nclass = 100)
@@ -74,3 +78,13 @@ hist(fit$coef[,8], nclass = 100)
 hist(fit$coef[,9], nclass = 100)
 hist(fit$coef[,10], nclass = 100)
 hist(fit$coef[,11], nclass = 100)
+hist(fit$coef[,12], nclass = 100)
+hist(fit$coef[,13], nclass = 100)
+hist(fit$coef[,14], nclass = 100)
+hist(fit$coef[,15], nclass = 100)
+hist(fit$coef[,16], nclass = 100)
+hist(fit$coef[,17], nclass = 100)
+covset <- read.table("covset.txt")
+str(covset)
+str(fit$NB.disp)
+hist(fit$NB.disp, nclass = 50)
