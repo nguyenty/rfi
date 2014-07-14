@@ -12,10 +12,18 @@ source("QL.results.R")
 
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultpaired"
-scount <- read.table("paired end uniquely mapped reads count table for Yet.txt", 
+scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
 # dim(scount)
 # scount
+# which(scount[,1] %in%"ENSSSCG00000007978")
+# which(scount[,1] %in%"ENSSSCG00000014725")
+# 
+# scount[which(scount[,1] %in%"ENSSSCG00000007978"), ]
+# scount[which(scount[,1] %in%"ENSSSCG00000014725"), ]
+
+scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
+                    which(scount[,1] %in%"ENSSSCG00000014725")),]
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
                   header =T)
 
