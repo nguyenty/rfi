@@ -12,7 +12,7 @@ source(paste(dir.source, "NBDev.R",sep =""))
 source(paste(dir.source, "PoisDev.R",sep =""))
 source(paste(dir.source, "QL.results.R",sep =""))
 
-resultdir <- "U:/R/RA/Data/RFI-newdata/result4"
+resultdir <- "U:/R/RA/Data/RFI-newdata/resultpaired"
 scount <- read.table("paired end uniquely mapped reads count table for Yet.txt", 
                      header = T)
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
