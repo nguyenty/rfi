@@ -5,16 +5,17 @@ require(reshape)
 require(plyr)
 library(fields)
 library(reshape)
-dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-#dir.source <- "/home/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-source(paste(dir.source, "QL.fit.R",sep=""))
-source(paste(dir.source, "NBDev.R",sep =""))
-source(paste(dir.source, "PoisDev.R",sep =""))
-source(paste(dir.source, "QL.results.R",sep =""))
+source("QL.fit.R")
+source("NBDev.R")
+source("PoisDev.R")
+source("QL.results.R")
 
+#resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultpaired"
 scount <- read.table("paired end uniquely mapped reads count table for Yet.txt", 
                      header = T)
+# dim(scount)
+# scount
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
                   header =T)
 
