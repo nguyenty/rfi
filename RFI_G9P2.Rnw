@@ -65,8 +65,8 @@ require(PASWR)
 \item Distance between Grenander CDF Estimator to Uniform CDF using
 \begin{itemize}
 \item Anderson-Darling Statistics
-\item Crames-Von-Miser statistics
-\item Kolmogorow-Smirnov statistics 
+\item Cram{\'e}r-Von-Mises statistics
+\item Kolmogorov-Smirnov statistics 
 \end{itemize}
 \end{itemize}
 \item[3.] Results
@@ -103,7 +103,7 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 \item Factors: Diet (2 levels), Line (2 levels), Block (4 levels), Blockorder (8 levels).
 \item Quantitative covariates: RFI (RFI values) , RINb (RNA Integrity Number before globin depletion), RINa (RNA Integrity Number after globin depletion), Concb (RNA Concentration before globin depletion), Conca(RNA Concentration after globin depletion).
 \end{itemize}
-\item CBC (Complete Blood Count) data:  neutrophils, lymphocytes, monocytes, eosinophils, and basophils. The CBC covariates are in model in the form of log transformation.
+\item CBC (Complete Blood Count) data:  neutrophils, lymphocytes, monocytes, eosinophils, and basophils. The CBC covariates are in model in the form of log2 transformation.
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
@@ -124,14 +124,14 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 \section{Model Selection}
 \begin{frame}
 \frametitle{Model Selection Criteria}
-Starting model includes all interested covariates. For each covariate, 
+Starting model includes all  covariates of interest. For each covariate, 
 \begin{itemize}
 \setlength{\itemsep}{.2in}
-\item We conduct a Likelihood Ratio Test using QuasiSeq of the full model vs. the reduced model obtained from the full model by deleting the considerated covariate. We collect the set of pvalues of all genes from the tests. 
+\item We conduct a Likelihood Ratio Test using QuasiSeq of the full model vs. the reduced model obtained from the full model by deleting the considered covariate. We collect the set of pvalues of all genes from the tests. 
 
 \item Obtain the number of genes with pvalues less than or equal 0.05. 
 \item Obtain Grenander CDF estimator of the empirical CDF of the sample from those pvalues.
-\item Obtain the Anderson-Darling statistics, Crames-Von-Miser statistics, and Kolmogorow-Smirnov statistics between the Grenander CDF and uniform CDF.
+\item Obtain the Anderson-Darling statistics, Cram{\'e}r-Von-Mises statistics, and Kolmogorov-Smirnov statistics between the Grenander CDF and uniform CDF.
 \end{itemize}
 Exclude the covariate corresponding to the smallest value for most of the above criteria.
 \end{frame}
@@ -155,7 +155,7 @@ load("Model7_result.RData")
 dim(result$Q.values[[3]])[1]- result$m0[3,1]
 @
 
-\item When FDR is controlled at 0.05, 0.10, 0.15, the number of DE Genes between two RFI Lines (DEGs) and the number of DE Genes between two RFI Lines with log(fold change) at least 1 (log(FC) $\geq 1$) are shown in the table below
+\item When FDR is controlled at 0.05, 0.10, 0.15, the number of DE Genes between two RFI Lines (DEGs) and the number of DE Genes between two RFI Lines with log2(fold change) at least 1 (log2(FC) $\geq 1$) are shown in the table below
 <<results ='asis'>>=
 ### Reading data #######
 covset <- read.csv("covset.csv")
@@ -181,21 +181,21 @@ degene15 <- which(result$Q.values[[3]][,"Line"]<=0.15)
 
 degene <- c(length(degene05), length(degene10), length(degene15))
 
-## List of subset of Line DE Genes with log(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
+## List of subset of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
-lf105 <- which(abs(log(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1)
+lf105 <- which(abs(log2(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1)
 
-lf110 <- which(abs(log(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1)
+lf110 <- which(abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1)
 
-lf115 <- which(abs(log(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1)
+lf115 <- which(abs(log2(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1)
 
-## Total number of Line DE Genes with log(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
+## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
 lf1 <- c(length(lf105), length(lf110), length(lf115))
 
 # Summary table
 out <- data.frame(FDR =c(0.05, 0.10, 0.15), degene = degene, lf1 = lf1)
-colnames(out) <- c("FDR", "DEGs", "$\\mbox{log(FC)}\\geq 1$")
+colnames(out) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
 
 print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
 @
