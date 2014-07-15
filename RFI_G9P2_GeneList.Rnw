@@ -153,9 +153,15 @@ dim(de_gene_ex)
 
 de_log2fc1_gene_ex <- subset(de_gene_ex, abs(log2fc) >=1)
 
-write.table(kept_gene_ex, file = "kept_gene_single_end.txt" )
-write.table(de_gene_ex, file = "DE_gene_single_end_qvalue05.txt" )
-write.table(de_log2fc1_gene_ex, file = "log2fc1_DE_gene_single_end_qvalue05.txt" )
+write.table(kept_gene_ex, file = "kept_gene_single_end.txt" ,
+            sep = "\t", 
+            row.names = FALSE)
+write.table(de_gene_ex, file = "DE_gene_single_end_qvalue05.txt" ,
+            sep = "\t", 
+            row.names = FALSE)
+write.table(de_log2fc1_gene_ex, file = "log2fc1_DE_gene_single_end_qvalue05.txt",
+            sep = "\t", 
+            row.names = FALSE )
 
 
 @
