@@ -5,6 +5,7 @@ require(reshape)
 require(plyr)
 library(fields)
 library(reshape)
+library(fdrtool)
 source("QL.fit.R")
 source("NBDev.R")
 source("PoisDev.R")
@@ -24,6 +25,7 @@ scount <- read.table("paired end uniquely mapped reads count table.txt",
 
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
+
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
                   header =T)
 
@@ -68,10 +70,14 @@ covset[, c("iddam", "idsire")]
 #detach(covset)
 attach(covset)
 
+# counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+#                              rowMeans(scount[,-1])>8 & 
+#                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
+#                              rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
-                             rowMeans(scount[,-1])>8 & 
-                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
-                             rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
+                             rowMeans(scount[,-1])>8 ,-1])
+
 dim(counts)
 dim(scount)
 dim(counts)
@@ -119,6 +125,34 @@ AIC.QL <- function(counts,QL.fit.object){
   return(dev-2*L0+2*p)
 }
 
+
+g_cdf <- function(z){
+  e <- ecdf(z)
+  g <- grenander(e)
+  g
+}
+sel_criteria <- function(result){
+  dat <- result$P.values[[3]][,colnames(result$P.values[[3]])]
+  # Crames Von Miser statistics
+  cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
+                                        diff(c(0,g_cdf(z)$x.knots))))
+  # Kolmogorow Smirnov statistics 
+  ks <- apply(dat, 2, function(z)max((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2))
+  
+  # Anderson-Darling statistics
+  ad <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2/
+                                       g_cdf(z)$x.knots*(1-g_cdf(z)$x.knots)*
+                                       diff(c(0,g_cdf(z)$x.knots))))
+  # Proportion of pvalue less than 0.05
+  pvalue_05 <- apply(dat<=0.05, 2, sum)
+  
+  out <- data.frame(pvalue05 = order(pvalue_05),
+                    ad = order(ad),
+                    cvm = order(cvm),
+                    ks = order(ks))
+  
+  return(out)
+}
 
 
 ###############
@@ -265,10 +299,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   }
   print(paste("Model", model_th, sep = " "))
   
-  return(list(mean_model = mean(fit$phi.hat.dev), 
-              median_model = median(fit$phi.hat.dev), 
-              AIC_model = mean(AIC.QL(counts, fit)),
-              pvalue_05 = pvalue_05))
+  return(sel_criteria(result))
 }
 
 
@@ -288,8 +319,40 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 # pairs(cbind(lneut, llymp, lmono, leosi, lbaso), lower.panel = panel.smooth, upper.panel = panel.cor)
 # 
 
+# Model 0 Check interaction ####
+m <- 0
+model_th <- m
+full_model <- model.matrix(~Line*Diet + RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
+colnames(full_model)
+design.list <- list("vector", 2)
+design.list[[1]] <- full_model
+design.list[[2]] <- full_model[,-24]
+fit <- QL.fit(counts, design.list, 
+              log.offset = log.offset, print.progress=FALSE,
+              Model = "NegBin")
+result<- QL.results(fit, Plot = FALSE)
+name_model <- "DietLine"
+model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+dir.create(model_dir, showWarnings = FALSE)
+save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  
+  pdf(paste(model_dir,"/Model", 
+            model_th, "DietLine",".pdf", sep =""))
+  hist(result$P.values[[3]], 
+       main="DietLine",
+       xlab = "p-values", col = 'green',nclass=100)
+  box()
+  dev.off()
 
-# Model 1
+#out <- sel_criteria(result)
+
+
+
+
+# Model 1####
 m <- 1
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
@@ -297,160 +360,51 @@ full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa +
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
 
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-# Model 2
+# Model 2####
 m <- 2
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                              lneut + llymp + lmono + leosi + lbaso + 
                              Block)
-#rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
-
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
 
 
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-
-
-# Model 3
+# Model 3#####
 m <- 3
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             lneut + llymp + lmono +  lbaso + 
                              Block)
-#rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
 
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-# Model 305
-m <- 305
-model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono +  
-                             Block)
-#rankMatrix(full_model)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
-
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-
-# Model 306
-m <- 306
-model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb +  RINa + 
-                             lneut + llymp + lmono +  lbaso+
-                             Block)
-#rankMatrix(full_model)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
-
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
-
-
-# Model 4
+# Model 4######
 m <- 4
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
                              lneut + llymp + lmono + lbaso + 
                              Block)
-#rankMatrix(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
-out_model$pvalue_05
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
 
-assign(paste("pvalue05", model_th, sep = "_" ),out_model$pvalue_05)
-get(paste("pvalue05", model_th, sep = "_" ))
-
-assign(paste("AICQL", model_th, sep = "_" ),out_model$AIC_model)
-get(paste("AICQL", model_th, sep = "_" ))
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-
-assign(paste("mean", model_th, sep = "_" ),out_model$mean_model)
-get(paste("mean", model_th, sep = "_" ))
-
-proc.time() -pm1 
 
 # Model 5
 m <- 5
