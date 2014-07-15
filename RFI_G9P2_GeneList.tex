@@ -1,0 +1,264 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+% \usepackage[sc]{mathpazo}
+% \usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{amsmath, amssymb, mathtools }
+\usepackage{enumerate}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{verbatim}
+\usepackage{color}
+\usepackage{pstricks}
+% \usepackage{longtable}
+% \usepackage{fancyvrb}
+% \usepackage{fancyhdr}
+\usepackage{eqnarray}
+%\pagestyle{fancy}
+\usepackage{psfrag}
+\usepackage{epsfig,epsf}
+\usepackage{pstricks}
+\geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{url}
+\usepackage[unicode=true,pdfusetitle,
+            bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
+            breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
+{hyperref}
+\hypersetup{
+  pdfstartview={XYZ null null 1}}
+\usepackage{breakurl}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+
+
+
+
+
+
+
+\title{Analyze RNASeq Data from G9P2 RFI Lines Using QuasiSeq Package}
+
+\author{Yet Nguyen}
+
+\maketitle
+
+
+
+\section*{Results of Model 7}
+\begin{knitrout}\footnotesize
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcom{## Covariate Set}
+\hlstd{covset} \hlkwb{<-} \hlkwd{read.csv}\hlstd{(}\hlstr{"covset.csv"}\hlstd{)}
+\hlkwd{attach}\hlstd{(covset)}
+
+\hlcom{## Load the result of model 11}
+\hlkwd{load}\hlstd{(}\hlstr{"Model7_result.RData"}\hlstd{)}
+
+\hlcom{## To get P.values of all Line Testings, use result$P.values[[3]][,'Line] To get Q.values of}
+\hlcom{## Line Testings, use result$Q.values[[3]][,'Line]}
+
+\hlstd{scount} \hlkwb{<-} \hlkwd{read.table}\hlstd{(}\hlstr{"single end uniquely mapped reads count table for Yet.txt"}\hlstd{,} \hlkwc{header} \hlstd{= T)}
+
+\hlcom{## List of Genes used to find DE Genes}
+
+\hlstd{counts} \hlkwb{<-} \hlkwd{as.matrix}\hlstd{(scount[}\hlkwd{rowSums}\hlstd{(scount[,} \hlopt{-}\hlnum{1}\hlstd{]} \hlopt{>} \hlnum{0}\hlstd{)} \hlopt{>} \hlnum{3} \hlopt{&} \hlkwd{rowMeans}\hlstd{(scount[,} \hlopt{-}\hlnum{1}\hlstd{])} \hlopt{>} \hlnum{8}\hlstd{,} \hlopt{-}\hlnum{1}\hlstd{])}
+
+\hlcom{# dim(counts) List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15}
+
+\hlstd{degene05} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.05}\hlstd{)}
+\hlkwd{head}\hlstd{(scount[}\hlkwd{rownames}\hlstd{(counts[degene05, ]),} \hlnum{1}\hlstd{])}  \hlcom{# First 6 of the List of Line DE Genes when FDR is controled at 0.05}
+\end{alltt}
+\begin{verbatim}
+## [1] ENSSSCG00000000035 ENSSSCG00000000036 ENSSSCG00000000047 ENSSSCG00000000059
+## [5] ENSSSCG00000000066 ENSSSCG00000000139
+## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
+\end{verbatim}
+\begin{alltt}
+\hlstd{degene10} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.1}\hlstd{)}
+\hlstd{degene15} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.15}\hlstd{)}
+
+\hlcom{## Total number of Line DE Genes when FDR is controlled at 0.05, 0.10, 0.15}
+
+\hlstd{degene} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(degene05),} \hlkwd{length}\hlstd{(degene10),} \hlkwd{length}\hlstd{(degene15))}
+
+\hlcom{## List of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15}
+
+\hlstd{lf105} \hlkwb{<-} \hlstd{degene05[}\hlkwd{abs}\hlstd{(}\hlkwd{log2}\hlstd{(}\hlkwd{apply}\hlstd{(counts[degene05, Line} \hlopt{==} \hlnum{1}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)}\hlopt{/}\hlkwd{apply}\hlstd{(counts[degene05,}
+    \hlstd{Line} \hlopt{==} \hlnum{2}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)))} \hlopt{>=} \hlnum{1}\hlstd{]}
+
+\hlstd{scount[}\hlkwd{rownames}\hlstd{(counts[lf105, ]),} \hlnum{1}\hlstd{]}  \hlcom{# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.05}
+\end{alltt}
+\begin{verbatim}
+##  [1] ENSSSCG00000000047 ENSSSCG00000000625 ENSSSCG00000000633 ENSSSCG00000000636
+##  [5] ENSSSCG00000000639 ENSSSCG00000001228 ENSSSCG00000001605 ENSSSCG00000003595
+##  [9] ENSSSCG00000003753 ENSSSCG00000003965 ENSSSCG00000004902 ENSSSCG00000005094
+## [13] ENSSSCG00000005134 ENSSSCG00000005287 ENSSSCG00000006183 ENSSSCG00000006398
+## [17] ENSSSCG00000007529 ENSSSCG00000009051 ENSSSCG00000009347 ENSSSCG00000009578
+## [21] ENSSSCG00000010411 ENSSSCG00000010634 ENSSSCG00000012100 ENSSSCG00000012141
+## [25] ENSSSCG00000012150 ENSSSCG00000014034 ENSSSCG00000014066 ENSSSCG00000014123
+## [29] ENSSSCG00000014562 ENSSSCG00000014599 ENSSSCG00000014832 ENSSSCG00000014871
+## [33] ENSSSCG00000014875 ENSSSCG00000015083 ENSSSCG00000015324 ENSSSCG00000015766
+## [37] ENSSSCG00000016216 ENSSSCG00000016851 ENSSSCG00000016992 ENSSSCG00000017035
+## [41] ENSSSCG00000017727 ENSSSCG00000017986 ENSSSCG00000020872 ENSSSCG00000020945
+## [45] ENSSSCG00000023108 ENSSSCG00000023256 ENSSSCG00000023537 ENSSSCG00000023585
+## [49] ENSSSCG00000024132 ENSSSCG00000024791 ENSSSCG00000024900 ENSSSCG00000025754
+## [53] ENSSSCG00000026087 ENSSSCG00000026873 ENSSSCG00000027378 ENSSSCG00000027944
+## [57] ENSSSCG00000029096 ENSSSCG00000029329 ENSSSCG00000030268 ENSSSCG00000030951
+## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
+\end{verbatim}
+\begin{alltt}
+\hlstd{lf110} \hlkwb{<-} \hlstd{degene10[}\hlkwd{abs}\hlstd{(}\hlkwd{log2}\hlstd{(}\hlkwd{apply}\hlstd{(counts[degene10, Line} \hlopt{==} \hlnum{1}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)}\hlopt{/}\hlkwd{apply}\hlstd{(counts[degene10,}
+    \hlstd{Line} \hlopt{==} \hlnum{2}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)))} \hlopt{>=} \hlnum{1}\hlstd{]}
+
+\hlstd{scount[}\hlkwd{rownames}\hlstd{(counts[lf110, ]),} \hlnum{1}\hlstd{]}  \hlcom{# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.10}
+\end{alltt}
+\begin{verbatim}
+##  [1] ENSSSCG00000000047 ENSSSCG00000000625 ENSSSCG00000000633 ENSSSCG00000000636
+##  [5] ENSSSCG00000000639 ENSSSCG00000000651 ENSSSCG00000000959 ENSSSCG00000000961
+##  [9] ENSSSCG00000001050 ENSSSCG00000001228 ENSSSCG00000001605 ENSSSCG00000001942
+## [13] ENSSSCG00000001978 ENSSSCG00000002620 ENSSSCG00000003595 ENSSSCG00000003753
+## [17] ENSSSCG00000003965 ENSSSCG00000004902 ENSSSCG00000005094 ENSSSCG00000005134
+## [21] ENSSSCG00000005287 ENSSSCG00000005494 ENSSSCG00000006140 ENSSSCG00000006142
+## [25] ENSSSCG00000006183 ENSSSCG00000006398 ENSSSCG00000007463 ENSSSCG00000007529
+## [29] ENSSSCG00000007909 ENSSSCG00000009051 ENSSSCG00000009347 ENSSSCG00000009497
+## [33] ENSSSCG00000009578 ENSSSCG00000009636 ENSSSCG00000010411 ENSSSCG00000010634
+## [37] ENSSSCG00000012100 ENSSSCG00000012141 ENSSSCG00000012150 ENSSSCG00000012911
+## [41] ENSSSCG00000013497 ENSSSCG00000013575 ENSSSCG00000014034 ENSSSCG00000014066
+## [45] ENSSSCG00000014123 ENSSSCG00000014562 ENSSSCG00000014565 ENSSSCG00000014599
+## [49] ENSSSCG00000014832 ENSSSCG00000014871 ENSSSCG00000014875 ENSSSCG00000015083
+## [53] ENSSSCG00000015324 ENSSSCG00000015766 ENSSSCG00000016216 ENSSSCG00000016599
+## [57] ENSSSCG00000016851 ENSSSCG00000016992 ENSSSCG00000017035 ENSSSCG00000017727
+## [61] ENSSSCG00000017986 ENSSSCG00000020872 ENSSSCG00000020945 ENSSSCG00000021283
+## [65] ENSSSCG00000022500 ENSSSCG00000023108 ENSSSCG00000023127 ENSSSCG00000023256
+## [69] ENSSSCG00000023537 ENSSSCG00000023585 ENSSSCG00000023987 ENSSSCG00000024132
+## [73] ENSSSCG00000024791 ENSSSCG00000024900 ENSSSCG00000025094 ENSSSCG00000025631
+## [77] ENSSSCG00000025754 ENSSSCG00000026087 ENSSSCG00000026873 ENSSSCG00000027378
+## [81] ENSSSCG00000027611 ENSSSCG00000027944 ENSSSCG00000028095 ENSSSCG00000028911
+## [85] ENSSSCG00000029096 ENSSSCG00000029147 ENSSSCG00000029329 ENSSSCG00000030268
+## [89] ENSSSCG00000030951
+## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
+\end{verbatim}
+\begin{alltt}
+\hlstd{lf115} \hlkwb{<-} \hlstd{degene15[}\hlkwd{abs}\hlstd{(}\hlkwd{log2}\hlstd{(}\hlkwd{apply}\hlstd{(counts[degene15, Line} \hlopt{==} \hlnum{1}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)}\hlopt{/}\hlkwd{apply}\hlstd{(counts[degene15,}
+    \hlstd{Line} \hlopt{==} \hlnum{2}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)))} \hlopt{>=} \hlnum{1}\hlstd{]}
+\hlstd{scount[}\hlkwd{rownames}\hlstd{(counts[lf115, ]),} \hlnum{1}\hlstd{]}  \hlcom{# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.15}
+\end{alltt}
+\begin{verbatim}
+##   [1] ENSSSCG00000000047 ENSSSCG00000000625 ENSSSCG00000000633 ENSSSCG00000000636
+##   [5] ENSSSCG00000000639 ENSSSCG00000000651 ENSSSCG00000000959 ENSSSCG00000000961
+##   [9] ENSSSCG00000001050 ENSSSCG00000001228 ENSSSCG00000001605 ENSSSCG00000001942
+##  [13] ENSSSCG00000001978 ENSSSCG00000002620 ENSSSCG00000003595 ENSSSCG00000003753
+##  [17] ENSSSCG00000003965 ENSSSCG00000004902 ENSSSCG00000005094 ENSSSCG00000005134
+##  [21] ENSSSCG00000005211 ENSSSCG00000005287 ENSSSCG00000005494 ENSSSCG00000006140
+##  [25] ENSSSCG00000006142 ENSSSCG00000006183 ENSSSCG00000006398 ENSSSCG00000007405
+##  [29] ENSSSCG00000007463 ENSSSCG00000007529 ENSSSCG00000007909 ENSSSCG00000008771
+##  [33] ENSSSCG00000008991 ENSSSCG00000009051 ENSSSCG00000009347 ENSSSCG00000009497
+##  [37] ENSSSCG00000009578 ENSSSCG00000009636 ENSSSCG00000009965 ENSSSCG00000010411
+##  [41] ENSSSCG00000010634 ENSSSCG00000012100 ENSSSCG00000012141 ENSSSCG00000012150
+##  [45] ENSSSCG00000012911 ENSSSCG00000013497 ENSSSCG00000013575 ENSSSCG00000014034
+##  [49] ENSSSCG00000014066 ENSSSCG00000014123 ENSSSCG00000014562 ENSSSCG00000014565
+##  [53] ENSSSCG00000014599 ENSSSCG00000014832 ENSSSCG00000014871 ENSSSCG00000014875
+##  [57] ENSSSCG00000015083 ENSSSCG00000015324 ENSSSCG00000015706 ENSSSCG00000015707
+##  [61] ENSSSCG00000015766 ENSSSCG00000016216 ENSSSCG00000016599 ENSSSCG00000016851
+##  [65] ENSSSCG00000016992 ENSSSCG00000017035 ENSSSCG00000017220 ENSSSCG00000017300
+##  [69] ENSSSCG00000017727 ENSSSCG00000017986 ENSSSCG00000020872 ENSSSCG00000020945
+##  [73] ENSSSCG00000021283 ENSSSCG00000021368 ENSSSCG00000022500 ENSSSCG00000023108
+##  [77] ENSSSCG00000023127 ENSSSCG00000023256 ENSSSCG00000023537 ENSSSCG00000023585
+##  [81] ENSSSCG00000023987 ENSSSCG00000024132 ENSSSCG00000024136 ENSSSCG00000024791
+##  [85] ENSSSCG00000024900 ENSSSCG00000025094 ENSSSCG00000025631 ENSSSCG00000025754
+##  [89] ENSSSCG00000026087 ENSSSCG00000026873 ENSSSCG00000027378 ENSSSCG00000027611
+##  [93] ENSSSCG00000027944 ENSSSCG00000028095 ENSSSCG00000028664 ENSSSCG00000028911
+##  [97] ENSSSCG00000029096 ENSSSCG00000029147 ENSSSCG00000029329 ENSSSCG00000030268
+## [101] ENSSSCG00000030644 ENSSSCG00000030951
+## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
+\end{verbatim}
+\begin{alltt}
+\hlcom{## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10,}
+\hlcom{## 0.15}
+
+\hlstd{lf1} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(lf105),} \hlkwd{length}\hlstd{(lf110),} \hlkwd{length}\hlstd{(lf115))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+
+
+\begin{kframe}
+\begin{alltt}
+\hlcom{# Summary table}
+\hlstd{out} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{FDR} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{0.05}\hlstd{,} \hlnum{0.1}\hlstd{,} \hlnum{0.15}\hlstd{),} \hlkwc{degene} \hlstd{= degene,} \hlkwc{lf1} \hlstd{= lf1)}
+\hlkwd{colnames}\hlstd{(out)} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"FDR"}\hlstd{,} \hlstr{"DEGs"}\hlstd{,} \hlstr{"log2(FC)>=1"}\hlstd{)}
+\hlkwd{xtable}\hlstd{(out)}
+\end{alltt}
+\end{kframe}% latex table generated in R 3.1.0 by xtable 1.7-3 package
+% Mon Jul 14 12:34:45 2014
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & FDR & DEGs & log2(FC)$>$=1 \\ 
+  \hline
+1 & 0.05 & 649 &  60 \\ 
+  2 & 0.10 & 1680 &  89 \\ 
+  3 & 0.15 & 2595 & 102 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+
+\end{document}
