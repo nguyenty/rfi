@@ -164,6 +164,19 @@ write.table(de_log2fc1_gene_ex, file = "log2fc1_DE_gene_single_end_qvalue05.txt"
             row.names = FALSE )
 
 
+# normalization count data 
+offset <- apply(counts, 2, quantile, 0.75)
+norm_count_single <- sweep(kept_gene[,-1], 2,STATS =  offset, FUN="/")
+dim(norm_count_single)
+summary(norm_count_single)
+norm_count_single_ex <- cbind(GeneID =kept_gene_ex[,1], 
+                              norm_count_single, 
+                              kept_gene_ex[,33:(dim(kept_gene_ex)[2])])
+
+head(norm_count_single_ex)
+write.table(norm_count_single_ex, file = "norm_count_single.txt" ,
+            sep = "\t", 
+            row.names = FALSE)
 @
 
 \end{document}
