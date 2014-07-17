@@ -233,3 +233,5 @@ s_degene <- s[s%in%degene]
       if (mean(y[j,])>1& sum(y[j,]>0)>3) break
     }
   }
+
+y
