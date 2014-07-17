@@ -207,12 +207,12 @@ coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
 dim(coef_beta)
 colnames(full_model)
 set.seed(1)
-J <- 5000
+J <- 1000
 s <- sample(dim(coef_beta)[1], J)
 s <- s[order(s)]
 mu <- coef_beta%*%t(full_model)
 omega <- fit$NB.disp
-degene <- which((ebp_line<0.5))
+  degene <- which((ebp_line<0.5))
 s_mu <- mu[s,]
 s_omega <- omega[s]
 
@@ -220,3 +220,16 @@ degene <- which(ebp_line<0.5)
 
 s_degene <- s[s%in%degene]  
 
+
+##Sim counts data
+  y <- array(0, dim = c(J,31))
+  
+  for(j in 1:J){
+    repeat{
+        for(k in 1:31){
+          y[j,k]  <- rnbinom(n=1, size=1/s_omega[j], mu=s_mu[j,k])
+        }
+      }
+      if (mean(y[j,])>1& sum(y[j,]>0)>3) break
+    }
+  }
