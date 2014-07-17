@@ -1,14 +1,14 @@
 load("Model7_result.RData")
-str(result)
 load("Model7_fit.RData")
-str(fit)
 result$m0["QLSpline", ]/12222
-?pairs
-boxplot(RINa~Line)
-hist(fit$coef[,2], nclass = 100)
 
-which(result$Q.values[[3]][,"Line"] <.05)
-sum(which(abs(fit$coef[,2])>0.5) %in%which(result$Q.values[[3]][,"Line"] <=0.05))
+scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+                     header = T)
+
+## List of Genes used to find DE Genes
+
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                             rowMeans(scount[,-1])>8 ,-1])
 
 covset <- read.table("covset.txt")
 attach(covset)
@@ -136,3 +136,87 @@ covset <- read.table("covset.txt")
 str(covset)
 str(fit$NB.disp)
 hist(fit$NB.disp, nclass = 50)
+# check if the condition of count avarage is sastified
+# change to simulation setup
+#estimate the number 
+# the following function is the same as function pval.hist
+# in the paper of Pounds et al. 2012, EBT, with the estimation of 
+# density obtained from the paper by Korbinian Strimmer 2008
+# 
+library(fdrtool)
+pval.hist.grenander <- function(p.value){
+  grenander.out <- grenander(ecdf(p.value))
+  p.brks <- c(0, grenander.out$x.knots)
+  b.edf <- c(0, grenander.out$F.knots)
+  p.diffs <- diff(p.brks)
+  h.cdf <- approx(p.brks, b.edf, xout = p.value)$y  # get the histogram-based CDF estimates from each p-value
+  p.hist <- exp(log(diff(b.edf))-log(diff(p.brks))) # get the hight for each histogram bar
+  pi0.hat <- min(p.hist)                            # get the pi0 estimate from histogram bar
+  h.ebp <- approx(p.brks, pi0.hat/c(p.hist, p.hist[length(p.hist)]), xout = p.value)$y # get the conservative EBP interpolation 
+  h.fdr <- exp(log(pi0.hat) + log(p.value) - log(h.cdf))                                     # Get the histogram based FDR estimate
+  h.ebp[p.value==0] <- 0
+  h.fdr[p.value==0] <- 0
+  return(list( p.value = p.value,          # input p-value,
+               h.cdf = h.cdf,              # the histogram Grenander based cdf estimate
+               h.fdr = h.fdr,              # the histogram Grenander based FDR
+               h.ebp = h.ebp,              # the histogram Grenander based EBP
+               p.brks = p.brks,            # the p-value break-points of the histogram
+               p.hist = p.hist,            # the heights of each histogram bar
+               edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
+               pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
+}
+
+pvalue_line <- result$P.values[[3]][,"Line"]
+qvalue_line <- result$Q.values[[3]][,"Line"]
+gre_out <- pval.hist.grenander(pvalue_line)
+ebp_line <- gre_out$h.ebp
+hist(ebp_line, nclass = 100)
+hist(pvalue_line, nclass = 100)
+length(pvalue_line)
+result$m0["QLSpline", "Line"]
+sum(ebp_line >0.5)/length(pvalue_line)
+plot(ebp_line, pvalue_line)
+
+
+hist(pvalue_line[ebp_line<0.5], nclass = 100)
+hist(fit$coef[,2][ebp_line<0.5], nclass = 100)
+hist(fit$coef[,2], nclass = 100)
+summary(fit$coef[,2])
+boxplot(fit$coef[,2])
+sum(fit$coef[,2][ebp_line<0.5] >0.06)
+sum(fit$coef[,2] >0.06)
+coef_line<- fit$coef[,2]
+plot(ebp_line, coef_line)
+
+fdr_line <- gre_out$h.fdr
+sum(fdr_line <=.10)
+which ()
+plot(pvalue_line, fdr_line)
+plot(pvalue_line, qvalue_line)
+plot(fdr_line, qvalue_line, type = "l")
+s <- sample(length(pvalue_line), 10000)
+ind <- s[order(s)]
+spvalue_line <- pvalue_line[s]
+sebp_line <- pval.hist.grenander(spvalue_line)$h.ebp
+sum(sebp_line>0.5)/length(spvalue_line)
+full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
+Block <- as.factor(Block)
+Line <- as.factor(Line)
+coef_beta <- fit$coef 
+coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+dim(coef_beta)
+colnames(full_model)
+set.seed(1)
+J <- 5000
+s <- sample(dim(coef_beta)[1], J)
+s <- s[order(s)]
+mu <- coef_beta%*%t(full_model)
+omega <- fit$NB.disp
+degene <- which((ebp_line<0.5))
+s_mu <- mu[s,]
+s_omega <- omega[s]
+
+degene <- which(ebp_line<0.5)
+
+s_degene <- s[s%in%degene]  
+
