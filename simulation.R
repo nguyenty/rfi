@@ -348,42 +348,42 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 # pairs(cbind(lneut, llymp, lmono, leosi, lbaso), lower.panel = panel.smooth, upper.panel = panel.cor)
 # 
 
-# Model 0 Check interaction ####
-m <- 0
-model_th <- m
-full_model <- model.matrix(~Line*Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
-                             Block + Blockorder)
-colnames(full_model)
-dim(full_model)
-design.list <- list("vector", 2)
-design.list[[1]] <- full_model
-design.list[[2]] <- full_model[,-24]
-counts <- y
-fit <- QL.fit(counts, design.list, 
-              log.offset = log.offset, print.progress=FALSE,
-              Model = "NegBin")
-result<- QL.results(fit, Plot = FALSE)
-str(fit)
-name_model <- "DietLine"
-model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
-dir.create(model_dir, showWarnings = FALSE)
-save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
-
-pdf(paste(model_dir,"/Model", 
-          model_th, "DietLine",".pdf", sep =""))
-hist(result$P.values[[3]], 
-     main="DietLine",
-     xlab = "p-values", col = 'green',nclass=100)
-box()
-dev.off()
+# # Model 0 Check interaction ####
+# m <- 0
+# model_th <- m
+# full_model <- model.matrix(~Line*Diet + RFI + Concb + RINb + Conca + RINa + 
+#                              lneut + llymp + lmono + leosi + lbaso + 
+#                              Block + Blockorder)
+# colnames(full_model)
+# dim(full_model)
+# design.list <- list("vector", 2)
+# design.list[[1]] <- full_model
+# design.list[[2]] <- full_model[,-24]
+# counts <- y
+# fit <- QL.fit(counts, design.list, 
+#               log.offset = log.offset, print.progress=FALSE,
+#               Model = "NegBin")
+# result<- QL.results(fit, Plot = FALSE)
+# str(fit)
+# name_model <- "DietLine"
+# model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+# dir.create(model_dir, showWarnings = FALSE)
+# save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+# save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+# 
+# pdf(paste(model_dir,"/Model", 
+#           model_th, "DietLine",".pdf", sep =""))
+# hist(result$P.values[[3]], 
+#      main="DietLine",
+#      xlab = "p-values", col = 'green',nclass=100)
+# box()
+# dev.off()
 
 #out <- sel_criteria(result)
 
 
-
-
+#dim(y)
+#log.offset
 # Model 1####
 m <- 1
 model_th <- m
