@@ -68,33 +68,54 @@ gre_out <- pval.hist.grenander(pvalue_line)
 ebp_line <- gre_out$h.ebp
 fdr_line <- gre_out$h.fdr
 
-
+plot(pvalue_line, ebp_line)
 full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
 dim(full_model)
 coef_beta <- fit$coef 
 coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+hist(coef_beta[,1], nclass = 100)
+hist(coef_beta[,2], nclass = 100)
 set.seed(1)
-J <- 10000
+J <- 8000
 s <- sample(dim(coef_beta)[1], J)
 s <- s[order(s)]
 
-offset <- apply(counts, 2, quantile, 0.75)
-lf=length(offset)
+log.offset <- log(apply(counts, 2, quantile, 0.75))
+lf=length(log.offset)
 
-R=matrix(rep(offset,dim(coef_beta)[1]),
+log.offset.mat=matrix(rep(log.offset,dim(coef_beta)[1]),
          ncol=lf,
          byrow=T)
 
 
-mu <- exp(coef_beta%*%t(full_model))* R
+Xbeta <- coef_beta%*%t(full_model)
+
+mu <- exp(Xbeta +  log.offset.mat)
+# mu[1,]
+# 
+# counts[1,]
+# head(R)
+
+# mu2 <- mu
+# summary(mu)
+
+#for(i in 1:12222) mu2[i,] <- exp(coef_beta%*%t(full_model))[i,]* offset
+# mu2 <- laply(1:12222, function(i)exp(coef_beta%*%t(full_model))[i,]*offset)
+# dim(mu2)
+# all(mu ==mu2)
+# dim(R)
+# dim(coef_beta)
+
 omega <- fit$NB.disp
 degene <- which((ebp_line<0.5))
-
+hist(coef_beta[degene], nclass = 100)
 s_mu <- mu[s,]
 s_omega <- omega[s]
 s_degene <- intersect(degene, s) 
-
-
+hist(s_omega, nclass = 100)
+hist(log10(s_mu), nclass = 100)
+plot(log10(s_mu[,1]), s_omega)
+dim(s_mu)
 ##Sim counts data
 y <- array(0, dim = c(J,31))
 
@@ -106,6 +127,7 @@ for(j in 1:J){
       if (mean(y[j,])>8& sum(y[j,]>0)>3) break
     }
 }
+
 
 
 log.offset <- log(apply(y, 2, quantile, .75))
