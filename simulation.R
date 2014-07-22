@@ -1,5 +1,4 @@
 require(Matrix)
-#library(QuasiSeq)
 library(edgeR)
 require(reshape)
 require(plyr)
@@ -73,10 +72,12 @@ full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso 
 dim(full_model)
 coef_beta <- fit$coef 
 coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+
 hist(coef_beta[,1], nclass = 100)
 hist(coef_beta[,2], nclass = 100)
+
 set.seed(1)
-J <- 8000
+J <- dim(coef_beta)[1]
 s <- sample(dim(coef_beta)[1], J)
 s <- s[order(s)]
 
@@ -91,22 +92,12 @@ log.offset.mat=matrix(rep(log.offset,dim(coef_beta)[1]),
 Xbeta <- coef_beta%*%t(full_model)
 
 mu <- exp(Xbeta +  log.offset.mat)
-# mu[1,]
-# 
-# counts[1,]
-# head(R)
-
-# mu2 <- mu
-# summary(mu)
-
-#for(i in 1:12222) mu2[i,] <- exp(coef_beta%*%t(full_model))[i,]* offset
-# mu2 <- laply(1:12222, function(i)exp(coef_beta%*%t(full_model))[i,]*offset)
-# dim(mu2)
-# all(mu ==mu2)
-# dim(R)
-# dim(coef_beta)
 
 omega <- fit$NB.disp
+omega_sim <- fit$NB.disp
+hist(omega, nclass = 100)
+
+
 degene <- which((ebp_line<0.5))
 hist(coef_beta[degene], nclass = 100)
 s_mu <- mu[s,]
@@ -127,8 +118,15 @@ for(j in 1:J){
       if (mean(y[j,])>8& sum(y[j,]>0)>3) break
     }
 }
+?rnbinom
+hist(coef_beta[,2], nclass = 100)
 
+plot(log(apply(counts[s,], 1, mean)),
+log(apply(y, 1, mean)))
+str(fit)
 
+hist(fit$phi.hat.dev, nclass = 100)
+load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
 
 log.offset <- log(apply(y, 2, quantile, .75))
 ###List of models function ####
@@ -543,3 +541,10 @@ logfc <- log2(meanline1) - log2(meanline2)
 meancount <- apply(counts, 1, mean)
 plot(log(meancount), logfc)
 dev.off()
+
+## coef
+coef_beta_real <- fit$coef[]
+coef_beta_sim <- fit$coef
+
+plot(coef_beta_real[s, 4], coef_beta_sim[, 4])
+s
