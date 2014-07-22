@@ -71,7 +71,7 @@ plot(pvalue_line, ebp_line)
 full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
 dim(full_model)
 coef_beta <- fit$coef 
-coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+#coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
 
 hist(coef_beta[,1], nclass = 100)
 hist(coef_beta[,2], nclass = 100)
@@ -94,8 +94,14 @@ Xbeta <- coef_beta%*%t(full_model)
 mu <- exp(Xbeta +  log.offset.mat)
 
 omega <- fit$NB.disp
-omega_sim <- fit$NB.disp
 hist(omega, nclass = 100)
+#omega_sim <- fit$NB.disp
+str(fit)
+fit$fitted.values[1,]
+plot(log10(apply(counts, 1, mean)), omega)
+# plot(mu[11201,],
+# counts[11201,])
+
 
 
 degene <- which((ebp_line<0.5))
@@ -118,13 +124,19 @@ for(j in 1:J){
       if (mean(y[j,])>8& sum(y[j,]>0)>3) break
     }
 }
-?rnbinom
+#?rnbinom
+par(mfrow = c(3,3))
+for(i in 1211:1219)plot(counts[i,], y[i,])
+for(i in 211:219)plot(counts[i,], mu[i,])
+counts[10000,]
 hist(coef_beta[,2], nclass = 100)
 
 plot(log(apply(counts[s,], 1, mean)),
 log(apply(y, 1, mean)))
 str(fit)
-
+dev.off()
+mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
+hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
 hist(fit$phi.hat.dev, nclass = 100)
 load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
 
