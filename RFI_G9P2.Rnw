@@ -176,10 +176,11 @@ counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
 degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)
 degene10 <- which(result$Q.values[[3]][,"Line"]<=0.10)
 degene15 <- which(result$Q.values[[3]][,"Line"]<=0.15)
+degene20 <- which(result$Q.values[[3]][,"Line"]<=0.20)
 
 ## Total number of Line  DE Genes when FDR is controlled at 0.05, 0.10, 0.15
 
-degene <- c(length(degene05), length(degene10), length(degene15))
+degene <- c(length(degene05), length(degene10), length(degene15), length(degene20))
 
 ## List of subset of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
@@ -189,12 +190,14 @@ lf110 <- which(abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(count
 
 lf115 <- which(abs(log2(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1)
 
+
+lf120 <- degene20[abs(log2(apply(counts[degene20, Line ==1]+1, 1, mean)/apply(counts[degene20, Line ==2]+1, 1, mean))) >=1]
 ## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
-lf1 <- c(length(lf105), length(lf110), length(lf115))
+lf1 <- c(length(lf105), length(lf110), length(lf115), length(lf120))
 
 # Summary table
-out <- data.frame(FDR =c(0.05, 0.10, 0.15), degene = degene, lf1 = lf1)
+out <- data.frame(FDR =c(0.05, 0.10, 0.15,20), degene = degene, lf1 = lf1)
 colnames(out) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
 
 print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
@@ -202,4 +205,48 @@ print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
 \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{Comparison to The Paired End Read Count Data}
+When FDR is controlled at $5\%$, then there are 444 common DE genes between two RFI lines.
+<<>>=
+scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+                     header = T)
+
+## List of Genes used to find DE Genes
+
+kept_gene <- scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>8 ,]
+#dim(kept_gene)
+#kept_gene$GeneID
+
+load("Model7_result.RData")
+degene05_s <- which(result$Q.values[[3]][,"Line"] <=0.05)
+id_de_s <- kept_gene$GeneID[degene05_s]
+#length(id_de_s)
+
+pcount <- read.table("paired end uniquely mapped reads count table.txt", 
+                     header = T)
+
+## List of Genes used to find DE Genes
+pcount <- pcount[-c(which(pcount[,1] %in%"ENSSSCG00000007978"),
+                    which(pcount[,1] %in%"ENSSSCG00000014725")),]
+
+kept_gene_p <- scount[rowSums(pcount[,-1]>0)>3&
+                           rowMeans(pcount[,-1])>8 ,]
+#dim(kept_gene_p)
+#kept_gene$GeneID
+
+load("Model7_resultdat2.RData")
+degene05_p <- which(result$Q.values[[3]][,"Line"] <=0.05)
+id_de_p <- kept_gene_p$GeneID[degene05_p]
+#length(id_de_p)
+length(intersect(id_de_p, id_de_s))
+
+@
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Comparison to the G8 Data}
+
+\end{frame}
 \end{document}
