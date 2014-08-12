@@ -1,5 +1,27 @@
 library(fdrtool)
 
+pval.hist.grenander <- function(p.value){
+  grenander.out <- grenander(ecdf(p.value))
+  p.brks <- c(0, grenander.out$x.knots)
+  b.edf <- c(0, grenander.out$F.knots)
+  p.diffs <- diff(p.brks)
+  h.cdf <- approx(p.brks, b.edf, xout = p.value)$y  # get the histogram-based CDF estimates from each p-value
+  p.hist <- exp(log(diff(b.edf))-log(diff(p.brks))) # get the hight for each histogram bar
+  pi0.hat <- min(p.hist)                            # get the pi0 estimate from histogram bar
+  h.ebp <- approx(p.brks, pi0.hat/c(p.hist, p.hist[length(p.hist)]), xout = p.value)$y # get the conservative EBP interpolation 
+  h.fdr <- exp(log(pi0.hat) + log(p.value) - log(h.cdf))                                     # Get the histogram based FDR estimate
+  h.ebp[p.value==0] <- 0
+  h.fdr[p.value==0] <- 0
+  return(list( p.value = p.value,          # input p-value,
+               h.cdf = h.cdf,              # the histogram Grenander based cdf estimate
+               h.fdr = h.fdr,              # the histogram Grenander based FDR
+               h.ebp = h.ebp,              # the histogram Grenander based EBP
+               p.brks = p.brks,            # the p-value break-points of the histogram
+               p.hist = p.hist,            # the heights of each histogram bar
+               edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
+               pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
+}
+
 g_cdf <- function(z){
   e <- ecdf(z)
   g <- grenander(e)
@@ -19,7 +41,10 @@ sel_criteria <- function(result){
                                        diff(c(0,g_cdf(z)$x.knots))))
   # Proportion of pvalue less than 0.05
   pvalue_05 <- apply(dat<=0.05, 2, sum)
+  qvalue_dat <- result$Q.values[[3]][,colnames(result$Q.values[[3]])]
+  qvalue_20 <- apply(qvalue_dat<=.10, 2, sum)
 return( data.frame(pvalue05 = order(pvalue_05),
+                   qvalue_20 = order(qvalue_20),
                    ad = order(ad),
                    cvm = order(cvm),
                    ks = order(ks)))
