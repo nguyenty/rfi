@@ -172,14 +172,18 @@ counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8& 
                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
                              rowSums(scount[,-1][, Line ==2] >0) >0 ,-1])
-
-
+gene_name <- scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>8& 
+                             rowSums(scount[,-1][,Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, Line ==2] >0) >0 ,][,1]
 ## List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15
 
 degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)
 degene10 <- which(result$Q.values[[3]][,"Line"]<=0.10)
 degene15 <- which(result$Q.values[[3]][,"Line"]<=0.15)
 degene20 <- which(result$Q.values[[3]][,"Line"]<=0.20)
+
+gene_name_de05_s <- gene_name[degene05]
 
 ## Total number of Line  DE Genes when FDR is controlled at 0.05, 0.10, 0.15
 
@@ -188,7 +192,8 @@ degene <- c(length(degene05), length(degene10), length(degene15), length(degene2
 ## List of subset of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
 lf105 <- which(abs(log2(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1)
-
+gene_name_lf105_s <- gene_name[lf105]
+#scount[as.numeric(names(lf105)),1]
 lf110 <- which(abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1)
 
 lf115 <- which(abs(log2(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1)
@@ -242,12 +247,17 @@ scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8 ,-1])
-
-
+#dim(scount)
+gene_name_p <- scount[rowSums(scount[,-1]>0)>3&
+                           rowMeans(scount[,-1])>8 ,][,1]
+#scount[,1]
 ## List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15
 
 degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)
 head(scount[rownames(counts[degene05,]), 1]) # First 6 of the List of Line DE Genes when FDR is controled at 0.05
+gene_name_de05_p <- gene_name_p[degene05]
+
+
 degene10 <- which(result$Q.values[[3]][,"Line"]<=0.10)
 degene15 <- which(result$Q.values[[3]][,"Line"]<=0.15)
 degene20 <- which(result$Q.values[[3]][,"Line"]<=0.20)
@@ -259,7 +269,7 @@ degene <- c(length(degene05), length(degene10), length(degene15),length(degene20
 ## List of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
 lf105 <- degene05[abs(log2(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1]
-
+gene_name_lf105_p <- gene_name_p[lf105]
 scount[rownames(counts[lf105,]), 1] # List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.05
 
 lf110 <-degene10[abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1]
@@ -288,46 +298,34 @@ print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
 @
 
 
-When FDR is controlled at $5\%$, then there are 444 common DE genes between two RFI lines.
+When FDR is controlled at $5\%$, then there are 444 common DE genes between two RFI lines in which 1 common DE genes with log2fc at least 1.
 <<>>=
-scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
-                     header = T)
+length(intersect(gene_name_de05_s, gene_name_de05_p))
+length(intersect(gene_name_lf105_s, gene_name_lf105_p))
 
-## List of Genes used to find DE Genes
-
-kept_gene <- scount[rowSums(scount[,-1]>0)>3&
-                           rowMeans(scount[,-1])>8 ,]
-#dim(kept_gene)
-#kept_gene$GeneID
-
-load("Model7_result.RData")
-degene05_s <- which(result$Q.values[[3]][,"Line"] <=0.05)
-id_de_s <- kept_gene$GeneID[degene05_s]
-#length(id_de_s)
-
-pcount <- read.table("paired end uniquely mapped reads count table.txt", 
-                     header = T)
-
-## List of Genes used to find DE Genes
-pcount <- pcount[-c(which(pcount[,1] %in%"ENSSSCG00000007978"),
-                    which(pcount[,1] %in%"ENSSSCG00000014725")),]
-
-kept_gene_p <- pcount[rowSums(pcount[,-1]>0)>3&
-                           rowMeans(pcount[,-1])>8 ,]
-#dim(kept_gene_p)
-#dim(pcount)
-#kept_gene$GeneID
-
-load("Model7_resultdat2.RData")
-degene05_p <- which(result$Q.values[[3]][,"Line"] <=0.05)
-id_de_p <- kept_gene_p$GeneID[degene05_p]
-#length(id_de_p)
-length(intersect(id_de_p, id_de_s))
 
 @
 
 
 
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{G8 - Backward  Model Selection I }
+\begin{figure}[h!]
+    \centering
+    %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
+    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateRNA.pdf}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{G8 - Backward  Model Selection II }
+\begin{figure}[h!]
+    \centering
+    %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
+    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateGD.pdf}
+    \end{figure}
 \end{frame}
 
 \begin{frame}[fragile]
