@@ -138,6 +138,38 @@ Starting model includes all  covariates of interest. For each covariate,
 \end{itemize}
 Exclude the covariate corresponding to the smallest value for most of the above criteria.
 \end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Grenander's Estimator}
+<<results='hide'>>=
+library("fdrtool")
+
+
+
+# samples from random exponential variable 
+z = rbeta(50, 1,2)
+e = ecdf(z)
+g = grenander(e)
+g
+
+# plot ecdf, concave cdf, and Grenander density estimator (on log scale)
+
+x <- g
+
+  plot(x$F, do.points=FALSE, col = 2, pch = 1, lwd = 2, xlim = c(0, 1),
+       ylim = c(0,1), main = "CDFs")
+  lines(x$x.knots, x$F.knots, type='l', col=4, lwd=2)
+  lines(x = c(0, 1), y = c(0, 1), type ="l", col = 1, lwd = 2)
+legend("bottomright",legend = c("Empirical CDF","Grenander CDF",  "Uniform(0,1) CDF"),
+   col = c(2,4,1), lwd = 2)
+
+  
+# for comparison the kernel density estimate
+
+
+@
+\end{frame}
 \begin{frame}[fragile]
 \frametitle{Single End Read Count Data-Backward Model Selection}
 \begin{figure}[h!]

@@ -16,7 +16,7 @@ resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
 load("Model7_result.RData")
 load("Model7_fit.RData")
 result$m0["QLSpline", ]/12222
-
+#dim(result$P.values[[3]])
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
 

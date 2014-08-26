@@ -104,7 +104,7 @@
 \hlstd{covset} \hlkwb{<-} \hlkwd{read.csv}\hlstd{(}\hlstr{"covset.csv"}\hlstd{)}
 \hlkwd{attach}\hlstd{(covset)}
 
-\hlcom{## Load the result of model 11}
+\hlcom{## Load the result of model 7}
 \hlkwd{load}\hlstd{(}\hlstr{"Model7_result.RData"}\hlstd{)}
 
 \hlcom{## To get P.values of all Line Testings, use result$P.values[[3]][,'Line] To get Q.values of}
@@ -129,10 +129,11 @@
 \begin{alltt}
 \hlstd{degene10} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.1}\hlstd{)}
 \hlstd{degene15} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.15}\hlstd{)}
+\hlstd{degene20} \hlkwb{<-} \hlkwd{which}\hlstd{(result}\hlopt{$}\hlstd{Q.values[[}\hlnum{3}\hlstd{]][,} \hlstr{"Line"}\hlstd{]} \hlopt{<=} \hlnum{0.2}\hlstd{)}
 
 \hlcom{## Total number of Line DE Genes when FDR is controlled at 0.05, 0.10, 0.15}
 
-\hlstd{degene} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(degene05),} \hlkwd{length}\hlstd{(degene10),} \hlkwd{length}\hlstd{(degene15))}
+\hlstd{degene} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(degene05),} \hlkwd{length}\hlstd{(degene10),} \hlkwd{length}\hlstd{(degene15),} \hlkwd{length}\hlstd{(degene20))}
 
 \hlcom{## List of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15}
 
@@ -226,10 +227,45 @@
 ## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
 \end{verbatim}
 \begin{alltt}
+\hlstd{lf120} \hlkwb{<-} \hlstd{degene20[}\hlkwd{abs}\hlstd{(}\hlkwd{log2}\hlstd{(}\hlkwd{apply}\hlstd{(counts[degene20, Line} \hlopt{==} \hlnum{1}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)}\hlopt{/}\hlkwd{apply}\hlstd{(counts[degene20,}
+    \hlstd{Line} \hlopt{==} \hlnum{2}\hlstd{]} \hlopt{+} \hlnum{1}\hlstd{,} \hlnum{1}\hlstd{, mean)))} \hlopt{>=} \hlnum{1}\hlstd{]}
+\hlstd{scount[}\hlkwd{rownames}\hlstd{(counts[lf120, ]),} \hlnum{1}\hlstd{]}  \hlcom{# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.20}
+\end{alltt}
+\begin{verbatim}
+##   [1] ENSSSCG00000000047 ENSSSCG00000000625 ENSSSCG00000000633 ENSSSCG00000000636
+##   [5] ENSSSCG00000000639 ENSSSCG00000000651 ENSSSCG00000000959 ENSSSCG00000000961
+##   [9] ENSSSCG00000001050 ENSSSCG00000001228 ENSSSCG00000001605 ENSSSCG00000001942
+##  [13] ENSSSCG00000001978 ENSSSCG00000002620 ENSSSCG00000003595 ENSSSCG00000003753
+##  [17] ENSSSCG00000003965 ENSSSCG00000004902 ENSSSCG00000005094 ENSSSCG00000005134
+##  [21] ENSSSCG00000005211 ENSSSCG00000005287 ENSSSCG00000005494 ENSSSCG00000006140
+##  [25] ENSSSCG00000006142 ENSSSCG00000006183 ENSSSCG00000006398 ENSSSCG00000007405
+##  [29] ENSSSCG00000007463 ENSSSCG00000007529 ENSSSCG00000007909 ENSSSCG00000008771
+##  [33] ENSSSCG00000008991 ENSSSCG00000009051 ENSSSCG00000009347 ENSSSCG00000009497
+##  [37] ENSSSCG00000009578 ENSSSCG00000009636 ENSSSCG00000009965 ENSSSCG00000010411
+##  [41] ENSSSCG00000010634 ENSSSCG00000012100 ENSSSCG00000012141 ENSSSCG00000012150
+##  [45] ENSSSCG00000012911 ENSSSCG00000013497 ENSSSCG00000013575 ENSSSCG00000014034
+##  [49] ENSSSCG00000014066 ENSSSCG00000014123 ENSSSCG00000014562 ENSSSCG00000014565
+##  [53] ENSSSCG00000014599 ENSSSCG00000014727 ENSSSCG00000014832 ENSSSCG00000014871
+##  [57] ENSSSCG00000014875 ENSSSCG00000015083 ENSSSCG00000015324 ENSSSCG00000015706
+##  [61] ENSSSCG00000015707 ENSSSCG00000015766 ENSSSCG00000016216 ENSSSCG00000016503
+##  [65] ENSSSCG00000016599 ENSSSCG00000016851 ENSSSCG00000016992 ENSSSCG00000017035
+##  [69] ENSSSCG00000017220 ENSSSCG00000017300 ENSSSCG00000017727 ENSSSCG00000017986
+##  [73] ENSSSCG00000020667 ENSSSCG00000020872 ENSSSCG00000020945 ENSSSCG00000021283
+##  [77] ENSSSCG00000021368 ENSSSCG00000022500 ENSSSCG00000023108 ENSSSCG00000023127
+##  [81] ENSSSCG00000023256 ENSSSCG00000023537 ENSSSCG00000023585 ENSSSCG00000023733
+##  [85] ENSSSCG00000023987 ENSSSCG00000024132 ENSSSCG00000024136 ENSSSCG00000024791
+##  [89] ENSSSCG00000024900 ENSSSCG00000025094 ENSSSCG00000025631 ENSSSCG00000025704
+##  [93] ENSSSCG00000025754 ENSSSCG00000026087 ENSSSCG00000026873 ENSSSCG00000027378
+##  [97] ENSSSCG00000027611 ENSSSCG00000027944 ENSSSCG00000028095 ENSSSCG00000028664
+## [101] ENSSSCG00000028911 ENSSSCG00000029096 ENSSSCG00000029147 ENSSSCG00000029329
+## [105] ENSSSCG00000030268 ENSSSCG00000030644 ENSSSCG00000030951
+## 25320 Levels: ENSSSCG00000000001 ENSSSCG00000000002 ... ENSSSCG00000031070
+\end{verbatim}
+\begin{alltt}
 \hlcom{## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10,}
 \hlcom{## 0.15}
 
-\hlstd{lf1} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(lf105),} \hlkwd{length}\hlstd{(lf110),} \hlkwd{length}\hlstd{(lf115))}
+\hlstd{lf1} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlkwd{length}\hlstd{(lf105),} \hlkwd{length}\hlstd{(lf110),} \hlkwd{length}\hlstd{(lf115),} \hlkwd{length}\hlstd{(lf120))}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -240,12 +276,12 @@
 \begin{kframe}
 \begin{alltt}
 \hlcom{# Summary table}
-\hlstd{out} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{FDR} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{0.05}\hlstd{,} \hlnum{0.1}\hlstd{,} \hlnum{0.15}\hlstd{),} \hlkwc{degene} \hlstd{= degene,} \hlkwc{lf1} \hlstd{= lf1)}
+\hlstd{out} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwc{FDR} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{0.05}\hlstd{,} \hlnum{0.1}\hlstd{,} \hlnum{0.15}\hlstd{,} \hlnum{0.2}\hlstd{),} \hlkwc{degene} \hlstd{= degene,} \hlkwc{lf1} \hlstd{= lf1)}
 \hlkwd{colnames}\hlstd{(out)} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{"FDR"}\hlstd{,} \hlstr{"DEGs"}\hlstd{,} \hlstr{"log2(FC)>=1"}\hlstd{)}
 \hlkwd{xtable}\hlstd{(out)}
 \end{alltt}
 \end{kframe}% latex table generated in R 3.1.0 by xtable 1.7-3 package
-% Mon Jul 14 12:34:45 2014
+% Mon Jul 28 14:06:14 2014
 \begin{table}[ht]
 \centering
 \begin{tabular}{rrrr}
@@ -255,9 +291,15 @@
 1 & 0.05 & 649 &  60 \\ 
   2 & 0.10 & 1680 &  89 \\ 
   3 & 0.15 & 2595 & 102 \\ 
+  4 & 0.20 & 3610 & 107 \\ 
    \hline
 \end{tabular}
 \end{table}
+
+
+
+\section{List of Gene in Analysis and List of Pvalues, Qvalues, logFC}
+
 
 
 
