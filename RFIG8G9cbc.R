@@ -12,7 +12,7 @@ source(paste(dir.source, "NBDev.R",sep =""))
 source(paste(dir.source, "PoisDev.R",sep =""))
 source(paste(dir.source, "QL.results.R",sep =""))
 
-resultdir <- "U:/R/RA/Data/RFI-newdata/result4"
+resultdir <- "U:/R/RA/Data/RFI-newdata/resultsingle"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
@@ -206,8 +206,8 @@ list_model <- function(full_model){
     # row.names(test.mat)[ind_block] <- "Block"
     # row.names(test.mat)
     #colnames(design.list[[ind_block+1]])
-#     design.list[[ind_block +2]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-#     row.names(test.mat)[ind_block + 1] <- "Blockorder" 
+    #     design.list[[ind_block +2]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+    #     row.names(test.mat)[ind_block + 1] <- "Blockorder" 
     # colnames(design.list[[ind_block+2]])
     # colnames(design.list[[1]])
     if(ind_block + 3 < n){ # i <- 15 # colnames(design.list[[i]])
@@ -218,32 +218,32 @@ list_model <- function(full_model){
     }
   }
   
-if (all(variable_name != "Block") & any(variable_name == "Blockorder")){
-  ind_blockorder <- which(variable_name == "Blockorder")[1] 
-  nlist <- n - sum(variable_name == "Blockorder") + 1
-  design.list <- vector("list", nlist)
-  design.list[[1]] <- full_model
-  test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
-  row.names(test.mat) <- variable_name[1:nrow(test.mat)]
-  
-  for(i in 1:(ind_blockorder-1)){ # i <- ind_blockorder - 1
-    design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
-    row.names(test.mat)[i] <- variable_name[i]
-  }
-  
-  design.list[[ind_blockorder + 1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-  # row.names(test.mat)[[ind_blockorder]]
-  # colnames(design.list[[ind_blockorder+1]])
-  row.names(test.mat)[ind_blockorder] <- "Blockorder" 
-  # colnames(design.list[[ind_block+2]])
-  # colnames(design.list[[1]])
-  if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
-    for(i in ((ind_blockorder+2):(n-6))){
-      design.list[[i]] <- full_model[,-(i + 6)] # colnames (full_model)
-      row.names(test.mat)[i-1] <- variable_name[i+5]    
+  if (all(variable_name != "Block") & any(variable_name == "Blockorder")){
+    ind_blockorder <- which(variable_name == "Blockorder")[1] 
+    nlist <- n - sum(variable_name == "Blockorder") + 1
+    design.list <- vector("list", nlist)
+    design.list[[1]] <- full_model
+    test.mat <- laply(1:(nlist-1), function(i) c(1,i+1))
+    row.names(test.mat) <- variable_name[1:nrow(test.mat)]
+    
+    for(i in 1:(ind_blockorder-1)){ # i <- ind_blockorder - 1
+      design.list[[i+1]] <- as.matrix(full_model[,-(i+1)])
+      row.names(test.mat)[i] <- variable_name[i]
+    }
+    
+    design.list[[ind_blockorder + 1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
+    # row.names(test.mat)[[ind_blockorder]]
+    # colnames(design.list[[ind_blockorder+1]])
+    row.names(test.mat)[ind_blockorder] <- "Blockorder" 
+    # colnames(design.list[[ind_block+2]])
+    # colnames(design.list[[1]])
+    if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
+      for(i in ((ind_blockorder+2):(n-6))){
+        design.list[[i]] <- full_model[,-(i + 6)] # colnames (full_model)
+        row.names(test.mat)[i-1] <- variable_name[i+5]    
+      }
     }
   }
-}
   if (n ==2) design.list[[2]] <- rep(1, nrow(full_model))
   return(list(design.list = design.list, test.mat = test.mat))
 }
@@ -255,24 +255,41 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
-  fit <- QL.fit(counts, design.list, test.mat, 
-                log.offset = log.offset, print.progress=FALSE,
-                Model = "NegBin")
-  result<- QL.results(fit, Plot = FALSE)
-  pvalue_05 <- apply(result$P.values[[3]][,rownames(test.mat)]<=0.05, 2, sum)
+#   fit <- QL.fit(counts, design.list, test.mat, 
+#                 log.offset = log.offset, print.progress=FALSE,
+#                 Model = "NegBin")
+#   result<- QL.results(fit, Plot = FALSE)
+# 
+#   k <- nrow(test.mat)
+#   name_model <- NULL 
+#   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
+#   model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+#   dir.create(model_dir, showWarnings = FALSE)
+#   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+#   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  
+#   fit <- QL.fit(counts, design.list, test.mat, 
+#                 log.offset = log.offset, print.progress=FALSE,
+#                 Model = "NegBin")
+#   result<- QL.results(fit, Plot = FALSE)
+#   
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
   model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
   dir.create(model_dir, showWarnings = FALSE)
-  save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-  save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  load(file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+  #save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  
   for(i in 1:(nrow(test.mat))){
     postscript(paste(model_dir,"/Model", 
                      model_th, row.names(test.mat)[i],".eps", sep =""))
     hist(result$P.values[[3]][,i], 
          main=row.names(test.mat)[i],
-         xlab = "p-values", col = 'green',nclass=100)
+         xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
+#     hist(result$P.values[[3]][,i], 
+#          main=row.names(test.mat)[i],
+#          xlab = "p-values", col = 'green',nclass=100)
     box()
     dev.off()
     
@@ -280,16 +297,16 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
               model_th, row.names(test.mat)[i],".pdf", sep =""))
     hist(result$P.values[[3]][,i], 
          main=row.names(test.mat)[i],
-         xlab = "p-values", col = 'green',nclass=100)
+         xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
+#     hist(result$P.values[[3]][,i], 
+#          main=row.names(test.mat)[i],
+#          xlab = "p-values", col = 'green',nclass=100)
     box()
     dev.off()
   }
   print(paste("Model", model_th, sep = " "))
   
-  return(list(mean_model = mean(fit$phi.hat.dev), 
-              median_model = median(fit$phi.hat.dev), 
-              AIC_model = mean(AIC.QL(counts, fit)),
-              pvalue_05 = pvalue_05))
+  return(sel_criteria(result))
 }
 
 
@@ -396,7 +413,7 @@ proc.time() -pm1
 
 
 
-# Model 7
+# Model 7#########
 m <- 7
 model_th <- m
 full_model <- model.matrix(~Line + Concb + RINa + 
