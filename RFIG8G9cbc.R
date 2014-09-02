@@ -255,23 +255,23 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
-#   fit <- QL.fit(counts, design.list, test.mat, 
-#                 log.offset = log.offset, print.progress=FALSE,
-#                 Model = "NegBin")
-#   result<- QL.results(fit, Plot = FALSE)
-# 
-#   k <- nrow(test.mat)
-#   name_model <- NULL 
-#   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-#   model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
-#   dir.create(model_dir, showWarnings = FALSE)
-#   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-#   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  fit <- QL.fit(counts, design.list, test.mat, 
+                log.offset = log.offset, print.progress=FALSE,
+                Model = "NegBin")
+  result<- QL.results(fit, Plot = FALSE)
+
+  k <- nrow(test.mat)
+  name_model <- NULL 
+  for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
+  model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+  dir.create(model_dir, showWarnings = FALSE)
+  save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+  save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
   
-#   fit <- QL.fit(counts, design.list, test.mat, 
-#                 log.offset = log.offset, print.progress=FALSE,
-#                 Model = "NegBin")
-#   result<- QL.results(fit, Plot = FALSE)
+  fit <- QL.fit(counts, design.list, test.mat, 
+                log.offset = log.offset, print.progress=FALSE,
+                Model = "NegBin")
+  result<- QL.results(fit, Plot = FALSE)
 #   
   k <- nrow(test.mat)
   name_model <- NULL 
@@ -284,23 +284,23 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   for(i in 1:(nrow(test.mat))){
     postscript(paste(model_dir,"/Model", 
                      model_th, row.names(test.mat)[i],".eps", sep =""))
-    hist(result$P.values[[3]][,i], 
-         main=row.names(test.mat)[i],
-         xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
 #     hist(result$P.values[[3]][,i], 
 #          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
+#          xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
+    hist(result$P.values[[3]][,i], 
+         main=row.names(test.mat)[i],
+         xlab = "p-values", col = 'green',nclass=100)
     box()
     dev.off()
     
     pdf(paste(model_dir,"/Model", 
               model_th, row.names(test.mat)[i],".pdf", sep =""))
-    hist(result$P.values[[3]][,i], 
-         main=row.names(test.mat)[i],
-         xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
 #     hist(result$P.values[[3]][,i], 
 #          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
+#          xlab = "p-values", col = 'green',nclass=100, ylim = c(0, 2000))
+    hist(result$P.values[[3]][,i], 
+         main=row.names(test.mat)[i],
+         xlab = "p-values", col = 'green',nclass=100)
     box()
     dev.off()
   }
@@ -332,7 +332,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 m <- 1
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -345,7 +345,7 @@ proc.time() -pm1
 m <- 2
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -359,7 +359,7 @@ proc.time() -pm1
 m <- 3
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono +  lbaso + 
+                             neut + lymp + mono +  baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -372,7 +372,7 @@ proc.time() -pm1
 m <- 4
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -386,7 +386,7 @@ proc.time() -pm1
 m <- 5
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -401,7 +401,7 @@ m <- 6
 model_th <- m
 
 full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 
 pm1 <- proc.time()
@@ -417,7 +417,7 @@ proc.time() -pm1
 m <- 7
 model_th <- m
 full_model <- model.matrix(~Line + Concb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 
 pm1 <- proc.time()
