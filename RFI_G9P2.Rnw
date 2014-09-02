@@ -70,13 +70,18 @@ require(PASWR)
 \end{itemize}
 \end{itemize}
 \item[3.] Results
+\begin{itemize}
+\item Generation 9 Data (single end and paired end data)
+\item Generation 8 Data
+\item Comparison between 2 Generations
+\end{itemize}
 \end{itemize}
 }
 
 
 \section{Data Summary}
 \begin{frame}[fragile]
-\frametitle{RNASeq Data Summary}
+\frametitle{RNASeq Data}
 \begin{itemize}
 \setlength{\itemsep}{.25in}
 \item RNASeq data set is a  25320 $\times$ 31 table of count data  corresponding to 25320 genes of 31  pigs from 2 Lines: high RFI Line and low RFI Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet 2).
@@ -94,7 +99,7 @@ For Diet 2, the RNA data are from 8 low RFI line pigs and 8  high RFI line pigs.
 
 %%%%%%%%%%%%%%%%
 \frame{
-\frametitle{Metadata Summary}
+\frametitle{Covariates}
 \begin{itemize}
 \setlength{\itemsep}{.25in}
 \item The available metadata consists of infomation of  9 covariates for 31 samples of 31 pigs.
@@ -134,7 +139,7 @@ Starting model includes all  covariates of interest. For each covariate,
 
 \item Obtain the number of genes with pvalues less than or equal 0.05. 
 \item Obtain Grenander CDF estimator of the empirical CDF of the sample from those pvalues.
-\item Obtain the Anderson-Darling statistics, Cram{\'e}r-Von-Mises statistics, and Kolmogorov-Smirnov statistics between the Grenander CDF and uniform CDF.
+\item Obtain the Anderson-Darling statistics, Cram{\'e}r-Von-Mises statistics, and Kolmogorov-Smirnov statistics between the Grenander CDF and uniform(0,1) CDF.
 \end{itemize}
 Exclude the covariate corresponding to the smallest value for most of the above criteria.
 \end{frame}
@@ -142,27 +147,39 @@ Exclude the covariate corresponding to the smallest value for most of the above 
 
 \begin{frame}[fragile]
 \frametitle{Grenander's Estimator}
-<<results='hide'>>=
+<<results='hide',out.width='6cm', out.height='6cm', fig.show='hold'>>=
 library("fdrtool")
 
 
 
 # samples from random exponential variable 
-z = rbeta(50, 1,2)
+set.seed(1)
+z = rbeta(100, 1,4)
 e = ecdf(z)
 g = grenander(e)
-g
 
 # plot ecdf, concave cdf, and Grenander density estimator (on log scale)
 
 x <- g
+#dev.off()
+hist(z,  prob = T,col = 2, main = 
+       "Simulation Data z ~ dbeta(100,1,4)")
+
+curve(dbeta(x, 1, 4), col = 3, add = TRUE, lwd = 2)
+lines(x = c(0,0.8), y = c(1,1), col = 1, lwd = 2)
+points(x$x.knots, x$f.knots, type="s",
+  col=4, lwd=2)
+legend("topright", legend = c("Grenander PDF", "dbeta(1,4)", "dunif(0,1)"), 
+      col = c(4, 3, 1), lwd = 2)
 
   plot(x$F, do.points=FALSE, col = 2, pch = 1, lwd = 2, xlim = c(0, 1),
        ylim = c(0,1), main = "CDFs")
   lines(x$x.knots, x$F.knots, type='l', col=4, lwd=2)
   lines(x = c(0, 1), y = c(0, 1), type ="l", col = 1, lwd = 2)
-legend("bottomright",legend = c("Empirical CDF","Grenander CDF",  "Uniform(0,1) CDF"),
-   col = c(2,4,1), lwd = 2)
+curve(pbeta(x,1,4), col = 3, lwd = 2, add = TRUE)
+legend("bottomright",legend = c("Empirical CDF","Grenander CDF",  "beta(1,4) CDF", 
+                                "Uniform(0,1) CDF"),
+   col = c(2,4,3, 1), lwd = 2)
 
   
 # for comparison the kernel density estimate
@@ -170,27 +187,44 @@ legend("bottomright",legend = c("Empirical CDF","Grenander CDF",  "Uniform(0,1) 
 
 @
 \end{frame}
+\section{Results}
+
 \begin{frame}[fragile]
 \frametitle{Single End Read Count Data-Backward Model Selection}
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
-    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbc.pdf}
+    %\includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbc.pdf}
+    
+      \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbcsingleend.png}
     \end{figure}
 \end{frame}
-\section{Results}
+
+
+
 \begin{frame}[fragile]
-\frametitle{Single End Read Count Data-Results of Model 7}
-\begin{itemize}
-\item 
-Estimated number of DE Genes between two RFI Lines
+
+\frametitle{Paired End Read Count Data-Backward Model Selection}
+\begin{figure}[h!]
+    \centering
+    %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
+   % \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbcdat2.pdf}
+     \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbcpairedend.png}
+    \end{figure}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+\frametitle{Number of Common DE Genes between two Data Sets}
+
+
 <<>>=
 #load("Model7_fit.RData")
 load("Model7_result.RData")
-dim(result$Q.values[[3]])[1]- result$m0[3,1]
+
 @
 
-\item When FDR is controlled at 0.05, 0.10, 0.15, the number of DE Genes between two RFI Lines (DEGs) and the number of DE Genes between two RFI Lines with log2(fold change) at least 1 (log2(FC) $\geq 1$) are shown in the table below
 <<results ='asis'>>=
 ### Reading data #######
 covset <- read.csv("covset.csv")
@@ -208,6 +242,9 @@ gene_name <- scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8& 
                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
                              rowSums(scount[,-1][, Line ==2] >0) >0 ,][,1]
+write.table(gene_name, "gene_list_g9_s.txt", 
+            row.names = FALSE, 
+            col.names = FALSE)
 ## List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15
 
 degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)
@@ -237,28 +274,11 @@ lf120 <- degene20[abs(log2(apply(counts[degene20, Line ==1]+1, 1, mean)/apply(co
 lf1 <- c(length(lf105), length(lf110), length(lf115), length(lf120))
 
 # Summary table
-out <- data.frame(FDR =c(0.05, 0.10, 0.15,20), degene = degene, lf1 = lf1)
-colnames(out) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
-
-print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
+out1 <- data.frame(FDR =c(0.05, 0.10, 0.15,.20), degene = degene, lf1 = lf1)
+colnames(out1) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
 @
-\end{itemize}
-\end{frame}
 
 
-
-\begin{frame}[fragile]
-
-\frametitle{Paired End Read Count Data-Backward Model Selection}
-\begin{figure}[h!]
-    \centering
-    %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
-    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{Plot07_022014_rficbcdat2.pdf}
-    \end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Paired End Read Count Data-Result of Model 7}
 <<results='hide'>>=
 
 ## Covariate Set
@@ -282,6 +302,10 @@ counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
 #dim(scount)
 gene_name_p <- scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8 ,][,1]
+#length(gene_name_p)
+write.table(gene_name_p, "gene_list_g9_p.txt",
+            row.names = FALSE, 
+            col.names = FALSE)
 #scount[,1]
 ## List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15
 
@@ -323,23 +347,63 @@ lf1 <- c(length(lf105), length(lf110), length(lf115), length(lf120))
 
 <<results='asis'>>=
 # Summary table
-out <- data.frame(FDR =c(0.05, 0.10, 0.15,20), degene = degene, lf1 = lf1)
-colnames(out) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
+out2 <- data.frame(FDR =c(0.05, 0.10, 0.15,.20), degene = degene, lf1 = lf1)
+colnames(out2) <- c("FDR", "DEGs", "$\\mbox{log2(FC)}\\geq 1$")
 
-print(xtable(out), include.rownames = F, sanitize.colnames.function = identity)
+#print(xtable(out2), include.rownames = F, sanitize.colnames.function = identity)
 @
 
+\begin{table}[htb]
+\begin{minipage}{.45\textwidth}
+\centering
+<<model7singleendresult,echo=FALSE,results='asis'>>=
 
-When FDR is controlled at $5\%$, then there are 444 common DE genes between two RFI lines in which 1 common DE genes with log2fc at least 1.
-<<>>=
-length(intersect(gene_name_de05_s, gene_name_de05_p))
-length(intersect(gene_name_lf105_s, gene_name_lf105_p))
-
-
+print(xtable(out1), include.rownames = F, sanitize.colnames.function = identity,
+  floating=FALSE,
+  hline.after=NULL,
+  add.to.row=list(pos=list(-1,0, nrow(out1)),
+  command=c('\\toprule\n','\\midrule\n','\\bottomrule\n')))
 @
+\captionof{Single End Data: }{Estimated number of DE Genes between 2 Lines is 4580.}
+\end{minipage}
+\begin{minipage}{.45\textwidth}
+\centering
+<<model8result,echo=FALSE,results='asis'>>=
 
 
+print(xtable(out2), include.rownames = F, sanitize.colnames.function = identity,
+  floating=FALSE,
+  hline.after=NULL,
+  add.to.row=list(pos=list(-1,0, nrow(out2)),
+  command=c('\\toprule\n','\\midrule\n','\\bottomrule\n')))
+@
+\captionof{Paired End Data: }{Estimated number of DE Genes between 2 Lines is 4990.}
+\end{minipage}
+\end{table}
 
+
+When FDR is controlled at $5\%$ in both dataset, there are 444 common DE genes between two RFI lines in which only 1 common DE gene with log2fc at least 1.
+% <<result ='hide'>>=
+% length(intersect(gene_name_de05_s, gene_name_de05_p))
+% length(intersect(gene_name_lf105_s, gene_name_lf105_p))
+% @
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Pvalues of Line Effects}
+
+\begin{figure}
+\centering
+\begin{subfigure}
+  \centering
+  \includegraphics[width=.4\linewidth]{PvalueLineSingleEnd.png}
+\end{subfigure}%
+\begin{subfigure}
+  \centering
+  \includegraphics[width=.4\linewidth]{PvalueLinePairedEnd.png}
+\end{subfigure}
+\end{figure}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -347,7 +411,7 @@ length(intersect(gene_name_lf105_s, gene_name_lf105_p))
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
-    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateRNA.pdf}
+    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateRNA.png}
     \end{figure}
 \end{frame}
 
@@ -356,22 +420,21 @@ length(intersect(gene_name_lf105_s, gene_name_lf105_p))
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{/home/ntyet/research/RFI-newdata/analysis/rfi/Plot06_26_2014_1.pdf}
-    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateGD.pdf}
+    \includegraphics[width=\textwidth,height=1.4\textheight,keepaspectratio]{PlotmodelcbcdateGD.png}
     \end{figure}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Comparison G8 Data and Single End Count Data G9}
-When FDR is controlled at $20\%$ for DE Analysis of G8 data, and FDR is controlled at $5\%$ for DE Analysis of single end count G9 data, there are 23 common DE genes between RFI lines
+When FDR is controlled at $20\%$ for DE Analysis of G8 data, and FDR is controlled at $5\%$ for DE Analysis of single end count G9 data, paired end count G9 data, there are 17 common DE genes between RFI lines
 <<>>=
-gene_list <- c("ENSSSCG00000000810", "ENSSSCG00000009051", "ENSSSCG00000027314", 
-"ENSSSCG00000006457", "ENSSSCG00000002792", "ENSSSCG00000007517", 
-"ENSSSCG00000024791", "ENSSSCG00000021802", "ENSSSCG00000000625", 
-"ENSSSCG00000008614", "ENSSSCG00000012141", "ENSSSCG00000016426", 
-"ENSSSCG00000013293", "ENSSSCG00000007656", "ENSSSCG00000021646", 
-"ENSSSCG00000008193", "ENSSSCG00000001511", "ENSSSCG00000015766", 
-"ENSSSCG00000009829", "ENSSSCG00000006309", "ENSSSCG00000006378", 
-"ENSSSCG00000006912", "ENSSSCG00000003716")
+gene_list <- c("ENSSSCG00000009051", "ENSSSCG00000027314", "ENSSSCG00000006457", 
+"ENSSSCG00000002792", "ENSSSCG00000007517", "ENSSSCG00000024791", 
+"ENSSSCG00000000625", "ENSSSCG00000008614", "ENSSSCG00000012141", 
+"ENSSSCG00000016426", "ENSSSCG00000013293", "ENSSSCG00000007656", 
+"ENSSSCG00000021646", "ENSSSCG00000008193", "ENSSSCG00000015766", 
+"ENSSSCG00000006309", "ENSSSCG00000006378", "ENSSSCG00000006912"
+)
 gene_list
 @
 and among those there are 3 genes
