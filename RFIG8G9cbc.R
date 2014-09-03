@@ -5,6 +5,7 @@ require(reshape)
 require(plyr)
 library(fields)
 library(reshape)
+library(fdrtool)
 dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
 #dir.source <- "/home/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
 source(paste(dir.source, "QL.fit.R",sep=""))
@@ -267,19 +268,6 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   dir.create(model_dir, showWarnings = FALSE)
   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
-  
-  fit <- QL.fit(counts, design.list, test.mat, 
-                log.offset = log.offset, print.progress=FALSE,
-                Model = "NegBin")
-  result<- QL.results(fit, Plot = FALSE)
-#   
-  k <- nrow(test.mat)
-  name_model <- NULL 
-  for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-  model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
-  dir.create(model_dir, showWarnings = FALSE)
-  load(file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-  #save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
   
   for(i in 1:(nrow(test.mat))){
     postscript(paste(model_dir,"/Model", 
