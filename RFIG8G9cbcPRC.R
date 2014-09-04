@@ -16,7 +16,9 @@ source("QL.fit.R")
 source("QL.results.R")
 source("NBDev.R")
 source("PoisDev.R")
-
+# datdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data"
+# datdir <- "/home/ntyet/cyfiles/R/RA/Data"
+#datdir <-  "U:/R/RA/Data"
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsingle"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -63,6 +65,24 @@ levels(covset$iddam) <- 1:20
 covset[, c("iddam", "idsire")]
 #detach(covset)
 attach(covset)
+
+str(covset)
+metadata <- cbind(RINb, Concb, RINa, Conca)
+
+metadata_scale <- scale(metadata)
+colnames(covset)
+cbcdata <- covset[,18:22]
+cbcdata_scale <- scale(cbcdata)
+svd(cbcdata_scale)
+str(cbcdata)
+svd(metadata_scale)
+svd(metadata)
+svdmetadata_scale <- svd(metadata_scale)
+metaprc <- svdmetadata_scale$u
+prcmetafi <- metaprc[,1]
+prcmetase <- metaprc[,2]
+prcmetath <- metaprc[,3]
+prcmetafo <- metaprc[,4]
 
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 & 
@@ -317,6 +337,108 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 # }
 # pairs(cbind(lneut, llymp, lmono, leosi, lbaso), lower.panel = panel.smooth, upper.panel = panel.cor)
 # 
+
+#pairs(cbind(RINa, RINb, Concb, Conca))
+# 
+# # Model 1####
+# m <- 1
+# model_th <- m
+# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+#                              neut + lymp + mono + eosi + baso + 
+#                              Block + Blockorder)
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# # Model 2####
+# m <- 2
+# model_th <- m
+# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+#                              neut + lymp + mono + eosi + baso + 
+#                              Block)
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# 
+# # Model 3#####
+# m <- 3
+# model_th <- m
+# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+#                              neut + lymp + mono +  baso + 
+#                              Block)
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# # Model 4######
+# m <- 4
+# model_th <- m
+# full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
+#                              neut + lymp + mono + baso + 
+#                              Block)
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# 
+# # Model 5#####
+# m <- 5
+# model_th <- m
+# full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
+#                              neut + lymp + mono + baso + 
+#                              Block)
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# 
+# # Model 6########
+# m <- 6
+# model_th <- m
+# 
+# full_model <- model.matrix(~Line + Concb + RINb + RINa + 
+#                              neut + lymp + mono + baso + 
+#                              Block)
+# 
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+# 
+# 
+# 
+# # Model 7#########
+# m <- 7
+# model_th <- m
+# full_model <- model.matrix(~Line + Concb + RINa + 
+#                              neut + lymp + mono + baso + 
+#                              Block)
+# 
+# pm1 <- proc.time()
+# out_model <- fit_model(full_model, model_th)
+# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+# get(paste("ms_criteria", model_th, sep = "_" ))
+# list_model(full_model)$test.mat
+# proc.time() -pm1
+
 
 
 
