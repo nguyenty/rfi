@@ -170,7 +170,7 @@ scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8 ,-1])
-
+#dim(counts)
 ## List of Line DE Genes when FDR is controled at 0.05, 0.10, 0.15
 
 degene05 <- which(result$Q.values[[3]][,"Line"]<=0.05)

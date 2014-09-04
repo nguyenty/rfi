@@ -59,7 +59,7 @@ require(PASWR)
 \begin{itemize}
 \setlength{\itemsep}{.2in}
 \item[1.] Data Summary
-\item[2.] Model Selection Stragegies
+\item[2.] Model Selection Strategies
 \begin{itemize}
 \item Number of genes with pvalues less than 0.05
 \item Distance between Grenander CDF Estimator to Uniform CDF using
@@ -242,6 +242,7 @@ gene_name <- scount[rowSums(scount[,-1]>0)>3&
                            rowMeans(scount[,-1])>8& 
                              rowSums(scount[,-1][,Line ==1] > 0) >0 &
                              rowSums(scount[,-1][, Line ==2] >0) >0 ,][,1]
+
 write.table(gene_name, "gene_list_g9_s.txt", 
             row.names = FALSE, 
             col.names = FALSE)

@@ -502,6 +502,7 @@ pvalue_common_g8 <- result$P.values[[3]][g8_index,"Line"]
 pairs(-log10(cbind(pvalue_common_g8, pvalue_common_g9_s,pvalue_common_g9_p)),
       lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
 
+covset <- read.table("covset.txt")
 colnames(covset)
 pairs(covset[,c(6,7, 8,9, 10)],
       lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
@@ -519,9 +520,9 @@ log2fcg8 <- abs(log2(meanline1/meanline2))
 log2fcg8_common <- log2fcg8[g8_index]
 
 # G9 single
-covset <- read.csv("covset.csv")
-attach(covset)
-detach(covset)
+# covset <- read.csv("covset.csv")
+# attach(covset)
+# detach(covset)
 
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
