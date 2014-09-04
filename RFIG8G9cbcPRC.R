@@ -6,12 +6,16 @@ require(plyr)
 library(fields)
 library(reshape)
 library(fdrtool)
-dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
+# dir.source <- "U:/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
 #dir.source <- "/home/ntyet/stevescode/QuasiSeq_1.0-2/QuasiSeq/R/"
-source(paste(dir.source, "QL.fit.R",sep=""))
-source(paste(dir.source, "NBDev.R",sep =""))
-source(paste(dir.source, "PoisDev.R",sep =""))
-source(paste(dir.source, "QL.results.R",sep =""))
+# source(paste(dir.source, "QL.fit.R",sep=""))
+# source(paste(dir.source, "NBDev.R",sep =""))
+# source(paste(dir.source, "PoisDev.R",sep =""))
+# source(paste(dir.source, "QL.results.R",sep =""))
+source("QL.fit.R")
+source("QL.results.R")
+source("NBDev.R")
+source("PoisDev.R")
 
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsingle"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
