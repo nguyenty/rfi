@@ -567,5 +567,6 @@ pvaluelinenolog <- result$P.values[[3]][,"Line"]
 # model 7  log cbc
 load("Model7_result.RData")
 pvaluelinelog <- result$P.values[[3]][,"Line"]
-plot(-log10(pvaluelinelog), -log10(pvaluelinenolog))
+plot(-log10(pvaluelinelog), -log10(pvaluelinenolog),
+     main = "corr = 0.951")
 cor(-log10(pvaluelinelog), -log10(pvaluelinenolog))
