@@ -340,104 +340,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 
 #pairs(cbind(RINa, RINb, Concb, Conca))
 # 
-# # Model 1####
-# m <- 1
-# model_th <- m
-# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-#                              neut + lymp + mono + eosi + baso + 
-#                              Block + Blockorder)
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# # Model 2####
-# m <- 2
-# model_th <- m
-# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-#                              neut + lymp + mono + eosi + baso + 
-#                              Block)
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# 
-# # Model 3#####
-# m <- 3
-# model_th <- m
-# full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-#                              neut + lymp + mono +  baso + 
-#                              Block)
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# # Model 4######
-# m <- 4
-# model_th <- m
-# full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-#                              neut + lymp + mono + baso + 
-#                              Block)
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# 
-# # Model 5#####
-# m <- 5
-# model_th <- m
-# full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-#                              neut + lymp + mono + baso + 
-#                              Block)
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# 
-# # Model 6########
-# m <- 6
-# model_th <- m
-# 
-# full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-#                              neut + lymp + mono + baso + 
-#                              Block)
-# 
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
-# 
-# 
-# 
-# # Model 7#########
-# m <- 7
-# model_th <- m
-# full_model <- model.matrix(~Line + Concb + RINa + 
-#                              neut + lymp + mono + baso + 
-#                              Block)
-# 
-# pm1 <- proc.time()
-# out_model <- fit_model(full_model, model_th)
-# assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-# get(paste("ms_criteria", model_th, sep = "_" ))
-# list_model(full_model)$test.mat
-# proc.time() -pm1
+
 
 
 
@@ -445,8 +348,10 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 # Model 1####
 m <- 1
 model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +prcmetath + prcmetafo + 
-                             neut + lymp + mono + eosi + baso + 
+full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -458,8 +363,10 @@ proc.time() -pm1
 # Model 2####
 m <- 2
 model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +prcmetath + prcmetafo + 
-                             neut + lymp + mono + eosi + baso + 
+full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -472,8 +379,10 @@ proc.time() -pm1
 # Model 3#####
 m <- 3
 model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +prcmetath + prcmetafo + 
-                             neut + lymp + mono +  baso + 
+full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono +  lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -485,8 +394,10 @@ proc.time() -pm1
 # Model 4######
 m <- 4
 model_th <- m
-full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-                             neut + lymp + mono + baso + 
+full_model <- model.matrix(~Line +  RFI + prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono +  lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -499,8 +410,10 @@ proc.time() -pm1
 # Model 5#####
 m <- 5
 model_th <- m
-full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-                             neut + lymp + mono + baso + 
+full_model <- model.matrix(~Line +  RFI + prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono +   
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -513,9 +426,10 @@ proc.time() -pm1
 # Model 6########
 m <- 6
 model_th <- m
-
-full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-                             neut + lymp + mono + baso + 
+full_model <- model.matrix(~Line +  prcmetafi + prcmetase +
+                             prcmetath + 
+                             prcmetafo + 
+                             lneut + llymp + lmono +   
                              Block)
 
 pm1 <- proc.time()
@@ -530,8 +444,39 @@ proc.time() -pm1
 # Model 7#########
 m <- 7
 model_th <- m
-full_model <- model.matrix(~Line + Concb + RINa + 
-                             neut + lymp + mono + baso + 
+full_model <- model.matrix(~Line +  prcmetafi + prcmetase +
+                             prcmetafo + 
+                             lneut + llymp + lmono +   
+                             Block)
+
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
+
+
+# Model 8#########
+m <- 8
+model_th <- m
+full_model <- model.matrix(~Line +  prcmetafi + prcmetase +
+                             lneut + llymp + lmono +   
+                             Block)
+
+pm1 <- proc.time()
+out_model <- fit_model(full_model, model_th)
+assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+get(paste("ms_criteria", model_th, sep = "_" ))
+list_model(full_model)$test.mat
+proc.time() -pm1
+
+
+# Model 9#########
+m <- 9
+model_th <- m
+full_model <- model.matrix(~Line +  prcmetafi + prcmetase +
+                             lneut + llymp +
                              Block)
 
 pm1 <- proc.time()
