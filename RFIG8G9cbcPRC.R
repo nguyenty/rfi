@@ -18,7 +18,7 @@ source("NBDev.R")
 source("PoisDev.R")
 # datdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data"
 # datdir <- "/home/ntyet/cyfiles/R/RA/Data"
-#datdir <-  "U:/R/RA/Data"
+datdir <-  "U:/R/RA/Data"
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsingle"
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -471,10 +471,10 @@ proc.time() -pm1
 
 # Model 3#####
 m <- 3
-model_th <- mfull_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +prcmetath + prcmetafo + 
-                                          neut + lymp + mono + baso + 
-                                          Block + Blockorder)
-
+model_th <- m
+full_model <- model.matrix(~Line + Diet + RFI + prcmetafi + prcmetase +prcmetath + prcmetafo + 
+                             neut + lymp + mono +  baso + 
+                             Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 assign(paste("ms_criteria", model_th, sep = "_" ),out_model)

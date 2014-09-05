@@ -558,3 +558,14 @@ length(log2fcg8_common)
 log2fc <- cbind(g8 = log2fcg8_common, g9s = log2fcg9s_common, g9p = log2fcg9p_common)
 pairs(log2fc,
       lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
+
+# model 7 no log cbc
+load("Model7_result_nologcbc.RData")
+pvaluelinenolog <- result$P.values[[3]][,"Line"]
+
+
+# model 7  log cbc
+load("Model7_result.RData")
+pvaluelinelog <- result$P.values[[3]][,"Line"]
+plot(-log10(pvaluelinelog), -log10(pvaluelinenolog))
+cor(-log10(pvaluelinelog), -log10(pvaluelinenolog))
