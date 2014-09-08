@@ -45,7 +45,7 @@ require(PASWR)
 @
 
 \title[RNASeq Analysis]{Analyze RNASeq Data from G9P2 RFI (Residual Feed Intake) Lines Using QuasiSeq Package}
-
+\date{August 27, 2014}
 
 % \author[Yet Nguyen, Dan Nettleton]{Yet Nguyen \and Dan Nettleton}
 % \institute[ISU]{Iowa State University}
@@ -158,7 +158,7 @@ z = rbeta(100, 1,4)
 e = ecdf(z)
 g = grenander(e)
 
-# plot ecdf, concave cdf, and Grenander density estimator (on log scale)
+# plot ecdf, concave cdf, and Grenander density estimator (on log2 scale)
 
 x <- g
 #dev.off()
@@ -229,7 +229,13 @@ load("Model7_result.RData")
 ### Reading data #######
 covset <- read.csv("covset.csv")
 attach(covset)
-
+load("Model7_fit.RData")
+# str(fit)
+# dim(fit$coef)
+# full_model <- model.matrix(~Line + Concb + RINa + 
+#                              lneut + llymp + lmono + lbaso + 
+#                              as.factor(Block))
+#colnames(full_model)
 load("Model7_result.RData")
 scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
                      header = T)
@@ -261,15 +267,17 @@ degene <- c(length(degene05), length(degene10), length(degene15), length(degene2
 
 ## List of subset of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
-lf105 <- which(abs(log2(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1)
+lf105 <- which((abs(fit$coef[degene05]))*log2(exp(1)) >=1)
 gene_name_lf105_s <- gene_name[lf105]
+
+
 #scount[as.numeric(names(lf105)),1]
-lf110 <- which(abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1)
+lf110 <-which((abs(fit$coef[degene10]))*log2(exp(1)) >=1)
 
-lf115 <- which(abs(log2(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1)
+lf115 <- which((abs(fit$coef[degene15]))*log2(exp(1)) >=1)
 
 
-lf120 <- degene20[abs(log2(apply(counts[degene20, Line ==1]+1, 1, mean)/apply(counts[degene20, Line ==2]+1, 1, mean))) >=1]
+lf120 <- which((abs(fit$coef[degene20])) >=1)
 ## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
 lf1 <- c(length(lf105), length(lf110), length(lf115), length(lf120))
@@ -325,19 +333,17 @@ degene <- c(length(degene05), length(degene10), length(degene15),length(degene20
 
 ## List of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
-lf105 <- degene05[abs(log2(apply(counts[degene05, Line ==1]+1, 1, mean)/apply(counts[degene05, Line ==2]+1, 1, mean))) >=1]
-gene_name_lf105_p <- gene_name_p[lf105]
-scount[rownames(counts[lf105,]), 1] # List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.05
+lf105 <- which((abs(fit$coef[degene05]))*log2(exp(1)) >=1)
+gene_name_lf105_p <- gene_name[lf105]
 
-lf110 <-degene10[abs(log2(apply(counts[degene10, Line ==1]+1, 1, mean)/apply(counts[degene10, Line ==2]+1, 1, mean))) >=1]
 
- scount[rownames(counts[lf110,]), 1] # List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.10
+#scount[as.numeric(names(lf105)),1]
+lf110 <-which((abs(fit$coef[degene10]))*log2(exp(1)) >=1)
 
-lf115 <- degene15[abs(log2(apply(counts[degene15, Line ==1]+1, 1, mean)/apply(counts[degene15, Line ==2]+1, 1, mean))) >=1]
- scount[rownames(counts[lf115,]), 1]# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.15
+lf115 <- which((abs(fit$coef[degene15]))*log2(exp(1)) >=1)
 
-lf120 <- degene20[abs(log2(apply(counts[degene20, Line ==1]+1, 1, mean)/apply(counts[degene20, Line ==2]+1, 1, mean))) >=1]
- scount[rownames(counts[lf120,]), 1]# List of  Line DE Genes with log2(FC) >=1 when FDR is controled at 0.15
+
+lf120 <- which((abs(fit$coef[degene20]))*log2(exp(1)) >=1)
 
 ## Total number of Line DE Genes with log2(FC) >=1 when FDR is controlled at 0.05, 0.10, 0.15
 
@@ -383,7 +389,7 @@ print(xtable(out2), include.rownames = F, sanitize.colnames.function = identity,
 \end{table}
 
 
-When FDR is controlled at $5\%$ in both dataset, there are 444 common DE genes between two RFI lines in which only 1 common DE gene with log2fc at least 1.
+When FDR is controlled at $5\%$ in both dataset, there are 444 common DE genes between two RFI lines in which  441 common DE gene with log2fc at least 1.
 % <<result ='hide'>>=
 % length(intersect(gene_name_de05_s, gene_name_de05_p))
 % length(intersect(gene_name_lf105_s, gene_name_lf105_p))
@@ -427,7 +433,9 @@ When FDR is controlled at $5\%$ in both dataset, there are 444 common DE genes b
 
 \begin{frame}[fragile]
 \frametitle{Comparison G8 Data and Single End Count Data G9}
-When FDR is controlled at $20\%$ for DE Analysis of G8 data, and FDR is controlled at $5\%$ for DE Analysis of single end count G9 data, paired end count G9 data, there are 17 common DE genes between RFI lines
+
+% taken from the file 
+When FDR is controlled at $20\%$ for DE Analysis of G8 data, and FDR is controlled at $5\%$ for DE Analysis of single end count G9 data, paired end count G9 data, there are 18 common DE genes between RFI lines
 <<>>=
 gene_list <- c("ENSSSCG00000009051", "ENSSSCG00000027314", "ENSSSCG00000006457", 
 "ENSSSCG00000002792", "ENSSSCG00000007517", "ENSSSCG00000024791", 
@@ -438,10 +446,10 @@ gene_list <- c("ENSSSCG00000009051", "ENSSSCG00000027314", "ENSSSCG00000006457",
 )
 gene_list
 @
-and among those there are 3 genes
+and among those there are 2 genes
 with log2fc $\geq 1$. 
 <<>>=
-commongenel2fc1 <- c("ENSSSCG00000000625", "ENSSSCG00000015766", "ENSSSCG00000006912")
+commongenel2fc1 <- c("ENSSSCG00000000625", "ENSSSCG00000015766")
 commongenel2fc1
 @
 \end{frame}
