@@ -427,30 +427,43 @@ pairs(log(cbind(pvalue_line13, pvalue_line14, pvalue_line15, pvalue_line16)),
 
 ## final results
 
-## Genelist model 8
+## Genelist model 8 - G8####################
 
 
 
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/resultcbc/Model8.Line.RINb.RINa.llymp.lneut.dateRNA/Model8_result.RData")
+#load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/Reanalysis Data/resultcbc/Model8.Line.RINb.RINa.llymp.lneut.dateRNA/Model8_result.RData")
+load("Model8_result_G8.RData")
+load("Model8_fit_G8.RData")
+# dim(fit$fitted)
+# dim(result$Q.values[[3]])
+# hist(result$P.values[[3]][, "Line"], nclass = 100)
+# str(fit)
+# load("Model7_result.RData")
+# load("Model7_fit.RData")
 
-id_de_G8_20qlavlue <- result_sum(result, 1)$id_de_gene
+# id_de_G8_20qlavlue <- result_sum(result, .2)$id_de_gene
+
+id_de_G8_20qlavlue <- names(fit$mn.cnt)[which(result$Q.values[[3]][,"Line"] <=0.2)]
+
+# gene_id
+#length(covset$Line)
 g9_out <- read.table("DE_gene_single_end_qvalue05.txt",
                      header = T)
 g9p_out <- read.table("DE_gene_paired_end_qvalue05.txt",
                      header = T)
 #str(g9_out)
-intersect(id_de_G8_20qlavlue,g9_out$GeneID)
-dput(intersect(intersect(id_de_G8_20qlavlue,g9_out$GeneID), g9p_out$GeneID))
+#intersect(id_de_G8_20qlavlue,g9_out$GeneID)
+#dput(intersect(intersect(id_de_G8_20qlavlue,g9_out$GeneID), g9p_out$GeneID))
 length(intersect(g9_out$GeneID, g9p_out$GeneID))
 
-intersect(id_de_G8_20qlavlue,g9p_out$GeneID)
-intersect(intersect(id_de_G8_20qlavlue,g9_out$GeneID), g9p_out$GeneID)
-
+#intersect(id_de_G8_20qlavlue,g9p_out$GeneID)
+de_common_g8_20_g9_5 <- intersect(intersect(id_de_G8_20qlavlue,g9_out$GeneID), g9p_out$GeneID)
+de_common_g8_20_g9_5
 
 
 ### list of gene analyzied in G8 ()
 gene_list_g8 <- gene_list
-
+#names(fit$mn.cnt)
 write.table(gene_list_g8, "gene_list_g8.txt",
             col.names = FALSE, 
             row.names = FALSE)
@@ -472,6 +485,9 @@ load("Model7_result.RData")
 pvalue_common_g9_s <- result$P.values[[3]][g9_s_index,"Line"]
 
 load("Model7_resultdat2.RData")
+# load("Model7_fitdat2.RData")
+# str(fit)
+# names(fit$mn.cnt)[2]
 pvalue_common_g9_p <- result$P.values[[3]][g9_p_index,"Line"]
 plot(log10(pvalue_common_g9_s), log10(pvalue_common_g9_p))
 
@@ -487,9 +503,8 @@ g9_s_index <- laply(1:length(g_common), function(i) which(gene_list_g9_s[,1] %in
 g9_p_index <- laply(1:length(g_common), function(i) which(gene_list_g9_p[,1] %in% g_common[i]))
 g8_index <- laply(1:length(g_common), function(i) which(gene_list_g8[,1] %in% g_common[i]))
 
-length(g9_s_index)
-length(g9_p_index)
-length(g_common)
+
+
 load("Model7_result.RData")
 pvalue_common_g9_s <- result$P.values[[3]][g9_s_index,"Line"]
 
@@ -548,6 +563,116 @@ scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
+dim(counts_p_id)
+counts_p_id <-  as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                                   rowMeans(scount[,-1])>8 ,])
+
+counts_p_id[,1][100]
+meanline1 <- apply(counts[,covset$Line ==1]+1, 1, mean)
+meanline2 <- apply(counts[,covset$Line ==2]+1, 1, mean)
+log2fcg9p <- abs(log2(meanline1/meanline2))
+log2fcg9p_common <- log2fcg9p[g9_p_index]
+length(log2fcg9p_common)
+length(log2fcg9s_common)
+length(log2fcg8_common)
+log2fc <- cbind(g8 = log2fcg8_common, g9s = log2fcg9s_common, g9p = log2fcg9p_common)
+pairs(log2fc,
+      lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
+
+# model 7 no log cbc
+load("Model7_result_nologcbc.RData")
+pvaluelinenolog <- result$P.values[[3]][,"Line"]
+
+
+# model 7  log cbc
+load("Model7_result.RData")
+pvaluelinelog <- result$P.values[[3]][,"Line"]
+plot(-log10(pvaluelinelog), -log10(pvaluelinenolog),
+     main = "corr = 0.951")
+cor(-log10(pvaluelinelog), -log10(pvaluelinenolog))
+
+
+
+### logfc ####
+
+### logfc common gene between 3 data set## 
+
+g9_s_index_fc <- laply(1:length(de_common_g8_20_g9_5), function(i) which(gene_list_g9_s[,1] %in% de_common_g8_20_g9_5[i]))
+
+length(g9_s_index_fc)
+
+g9_p_index_fc <- laply(1:length(de_common_g8_20_g9_5), function(i) which(gene_list_g9_p[,1] %in% de_common_g8_20_g9_5[i]))
+length(g9_p_index_fc)
+
+g8_index_fc <- laply(1:length(de_common_g8_20_g9_5), function(i) which(gene_list_g8[,1] %in% de_common_g8_20_g9_5[i]))
+length(g8_index_fc)
+g8_index_fc
+
+load("Model7_fit.RData")
+logfc_common_g9_s <- log2(exp(fit$coef[,2][g9_s_index_fc]))
+
+load("Model7_fitdat2.RData")
+logfc_common_g9_p <- log2(exp(fit$coef[,2][g9_p_index_fc]))
+
+load("Model8_fit_G8.RData")
+logfc_common_g8 <- log2(exp(fit$coef[,2][g8_index_fc]))
+
+de_common_g8_20_g9_5[which((abs(logfc_common_g8)>=1)&(abs(logfc_common_g9_s)>=1)&(abs(logfc_common_g9_p)>=1))]
+
+pairs(-log10(cbind(pvalue_common_g8, pvalue_common_g9_s,pvalue_common_g9_p)),
+      lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
+
+covset <- read.table("covset.txt")
+colnames(covset)
+pairs(covset[,c(6,7, 8,9, 10)],
+      lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
+
+pairs(exp(covset[,c(18:22)]),
+      lower.panel=panel.smooth, upper.panel=panel.cor,diag.panel=panel.hist)
+
+
+# Check the log2 fold change of the Line effect
+counts <- as.matrix(dat2[rowSums(dat2>0)>3&
+                           rowMeans(dat2)>8,])
+meanline1 <- apply(counts[,Line ==1]+1, 1, mean)
+meanline2 <- apply(counts[,Line ==2]+1, 1, mean)
+log2fcg8 <- abs(log2(meanline1/meanline2))
+log2fcg8_common <- log2fcg8[g8_index]
+
+# G9 single
+# covset <- read.csv("covset.csv")
+# attach(covset)
+# detach(covset)
+
+scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+                     header = T)
+
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                             rowMeans(scount[,-1])>8& 
+                             rowSums(scount[,-1][,covset$Line ==1] > 0) >0 &
+                             rowSums(scount[,-1][, covset$Line ==2] >0) >0 ,-1])
+
+meanline1 <- apply(counts[,covset$Line ==1]+1, 1, mean)
+meanline2 <- apply(counts[,covset$Line ==2]+1, 1, mean)
+log2fcg9s <- abs(log2(meanline1/meanline2))
+log2fcg9s_common <- log2fcg9s[g9_s_index]
+
+
+# G9 paired
+scount <- read.table("paired end uniquely mapped reads count table.txt", 
+                     header = T)
+
+## List of Genes used to find DE Genes
+scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
+                    which(scount[,1] %in%"ENSSSCG00000014725")),]
+counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                             rowMeans(scount[,-1])>8 ,-1])
+
+dim(counts_p_id)
+counts_p_id <-  as.matrix(scount[rowSums(scount[,-1]>0)>3&
+                                   rowMeans(scount[,-1])>8 ,])
+
+counts_p_id[,1][100]
 meanline1 <- apply(counts[,covset$Line ==1]+1, 1, mean)
 meanline2 <- apply(counts[,covset$Line ==2]+1, 1, mean)
 log2fcg9p <- abs(log2(meanline1/meanline2))
