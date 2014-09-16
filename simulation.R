@@ -67,52 +67,27 @@ gre_out <- pval.hist.grenander(pvalue_line)
 ebp_line <- gre_out$h.ebp
 fdr_line <- gre_out$h.fdr
 
-plot(pvalue_line, ebp_line)
 full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
 dim(full_model)
+colnames(full_model)
 coef_beta <- fit$coef 
-#coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
 
-hist(coef_beta[,1], nclass = 100)
-hist(coef_beta[,2], nclass = 100)
-
+cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)cor(fit$fitted.values[i,], counts[i,]))
 set.seed(1)
-J <- dim(coef_beta)[1]
-s <- sample(dim(coef_beta)[1], J)
+used_gene <- which(cor_fit_count >.8)
+used_beta <- coef_beta[used_gene,]
+J <- dim(used_beta)[1]
+s <- sample(dim(used_beta)[1], J)
 s <- s[order(s)]
-
-log.offset <- log(apply(counts, 2, quantile, 0.75))
-lf=length(log.offset)
-
-log.offset.mat=matrix(rep(log.offset,dim(coef_beta)[1]),
-         ncol=lf,
-         byrow=T)
-
-
-Xbeta <- coef_beta%*%t(full_model)
-
-mu <- exp(Xbeta +  log.offset.mat)
-
-omega <- fit$NB.disp
-hist(omega, nclass = 100)
-#omega_sim <- fit$NB.disp
-str(fit)
-fit$fitted.values[1,]
-plot(log10(apply(counts, 1, mean)), omega)
-# plot(mu[11201,],
-# counts[11201,])
-
-
-
-degene <- which((ebp_line<0.5))
-hist(coef_beta[degene], nclass = 100)
+used_omega <- fit$NB.disp[used_gene]
+used_count <- counts[used_gene,]
+degene <- which(ebp_line[used_gene]<0.5)
+mu <- fit$fitted[used_gene,]
 s_mu <- mu[s,]
-s_omega <- omega[s]
+s_omega <- used_omega[s]
 s_degene <- intersect(degene, s) 
-hist(s_omega, nclass = 100)
-hist(log10(s_mu), nclass = 100)
-plot(log10(s_mu[,1]), s_omega)
-dim(s_mu)
+
 ##Sim counts data
 y <- array(0, dim = c(J,31))
 
@@ -125,20 +100,18 @@ for(j in 1:J){
     }
 }
 #?rnbinom
-par(mfrow = c(3,3))
-for(i in 1211:1219)plot(counts[i,], y[i,])
-for(i in 211:219)plot(counts[i,], mu[i,])
-counts[10000,]
-hist(coef_beta[,2], nclass = 100)
+# par(mfrow = c(3,3))
+# for(i in 211:219)plot(counts[used_gene,][i,], y[i,])
+# for(i in 211:219)plot(counts[used_gene,][i,], s_mu[i,])
+# counts[10000,]
+# hist(coef_beta[,2], nclass = 100)
+# which(cor_fit_count)
 
-plot(log(apply(counts[s,], 1, mean)),
-log(apply(y, 1, mean)))
-str(fit)
 dev.off()
 mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
 hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
 hist(fit$phi.hat.dev, nclass = 100)
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+load("Model7_fit.RData")
 
 log.offset <- log(apply(y, 2, quantile, .75))
 ###List of models function ####
@@ -332,7 +305,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
                 log.offset = log.offset, print.progress=FALSE,
                 Model = "NegBin")
   result<- QL.results(fit, Plot = FALSE)
-  pvalue_05 <- apply(result$P.values[[3]][,rownames(test.mat)]<=0.05, 2, sum)
+  
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
