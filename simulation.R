@@ -107,10 +107,10 @@ for(j in 1:J){
 # hist(coef_beta[,2], nclass = 100)
 # which(cor_fit_count)
 
-dev.off()
-mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
-hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
-hist(fit$phi.hat.dev, nclass = 100)
+# dev.off()
+# mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
+# hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
+# hist(fit$phi.hat.dev, nclass = 100)
 load("Model7_fit.RData")
 
 log.offset <- log(apply(y, 2, quantile, .75))
