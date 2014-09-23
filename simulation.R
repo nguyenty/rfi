@@ -1,4 +1,6 @@
 require(Matrix)
+source("http://bioconductor.org/biocLite.R")
+biocLite("edgeR")
 library(edgeR)
 require(reshape)
 require(plyr)
@@ -78,7 +80,7 @@ set.seed(1)
 used_gene <- which(cor_fit_count >.8)
 used_beta <- coef_beta[used_gene,]
 J <- dim(used_beta)[1]
-s <- sample(dim(used_beta)[1], J)
+s <- sample(J, J)
 s <- s[order(s)]
 used_omega <- fit$NB.disp[used_gene]
 used_count <- counts[used_gene,]
@@ -114,6 +116,8 @@ for(j in 1:J){
 load("Model7_fit.RData")
 
 log.offset <- log(apply(y, 2, quantile, .75))
+dim(y)
+#plot(log(apply(counts, 2, quantile, .75)), log.offset)
 ###List of models function ####
 ### Case 1: no cbc data ####
 # dim(covset)
@@ -418,8 +422,8 @@ proc.time() -pm1
 # Model 3#####
 m <- 3
 model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono +  lbaso + 
+full_model <- model.matrix(~Line + Diet + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
