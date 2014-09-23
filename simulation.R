@@ -14,19 +14,27 @@ source("QL.results.R")
 
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
-
-load("Model7_result.RData")
-load("Model7_fit.RData")
-result$m0["QLSpline", ]/12222
-#dim(result$P.values[[3]])
-scount <- read.table("single end uniquely mapped reads count table for Yet.txt", 
+scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
+# dim(scount)
+# scount
+# which(scount[,1] %in%"ENSSSCG00000007978")
+# which(scount[,1] %in%"ENSSSCG00000014725")
+# 
+# scount[which(scount[,1] %in%"ENSSSCG00000007978"), ]
+# scount[which(scount[,1] %in%"ENSSSCG00000014725"), ]
 
-## List of Genes used to find DE Genes
+scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
+                    which(scount[,1] %in%"ENSSSCG00000014725")),]
 
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
+dim(counts)
+dim(scount)
+dim(counts)
+log.offset <- log(apply(counts, 2, quantile, .75))
+###List of models function ####
 covset <- read.table("covset.txt")
 attach(covset)
 Blockorder <- as.factor(Blockorder)
@@ -62,6 +70,8 @@ pval.hist.grenander <- function(p.value){
                edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
                pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
 }
+load("Model7_fitdat2.RData")
+load("Model7_resultdat2.RData")
 
 pvalue_line <- result$P.values[[3]][,"Line"]
 qvalue_line <- result$Q.values[[3]][,"Line"]
@@ -113,7 +123,7 @@ for(j in 1:J){
 # mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
 # hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
 # hist(fit$phi.hat.dev, nclass = 100)
-load("Model7_fit.RData")
+
 
 log.offset <- log(apply(y, 2, quantile, .75))
 dim(y)
@@ -340,63 +350,11 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 }
 
 
-# ### check correlation of cbc data####
-# #pairs(cbind(lneut, llymp, lmono, leosi, lbaso))
-# 
-# panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
-# {
-#   usr <- par("usr"); on.exit(par(usr))
-#   par(usr = c(0, 1, 0, 1))
-#   r <- abs(cor(x, y))
-#   txt <- format(c(r, 0.123456789), digits = digits)[1]
-#   txt <- paste0(prefix, txt)
-#   if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
-#   text(0.5, 0.5, txt, cex = cex.cor * r)
-# }
-# pairs(cbind(lneut, llymp, lmono, leosi, lbaso), lower.panel = panel.smooth, upper.panel = panel.cor)
-# 
-
-# # Model 0 Check interaction ####
-# m <- 0
-# model_th <- m
-# full_model <- model.matrix(~Line*Diet + RFI + Concb + RINb + Conca + RINa + 
-#                              lneut + llymp + lmono + leosi + lbaso + 
-#                              Block + Blockorder)
-# colnames(full_model)
-# dim(full_model)
-# design.list <- list("vector", 2)
-# design.list[[1]] <- full_model
-# design.list[[2]] <- full_model[,-24]
-# counts <- y
-# fit <- QL.fit(counts, design.list, 
-#               log.offset = log.offset, print.progress=FALSE,
-#               Model = "NegBin")
-# result<- QL.results(fit, Plot = FALSE)
-# str(fit)
-# name_model <- "DietLine"
-# model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
-# dir.create(model_dir, showWarnings = FALSE)
-# save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-# save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
-# 
-# pdf(paste(model_dir,"/Model", 
-#           model_th, "DietLine",".pdf", sep =""))
-# hist(result$P.values[[3]], 
-#      main="DietLine",
-#      xlab = "p-values", col = 'green',nclass=100)
-# box()
-# dev.off()
-
-#out <- sel_criteria(result)
-
-
-#dim(y)
-#log.offset
 # Model 1####
 m <- 1
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -409,7 +367,7 @@ proc.time() -pm1
 m <- 2
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -422,8 +380,8 @@ proc.time() -pm1
 # Model 3#####
 m <- 3
 model_th <- m
-full_model <- model.matrix(~Line + Diet + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                             neut + lymp + mono +  baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -436,7 +394,7 @@ proc.time() -pm1
 m <- 4
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -450,7 +408,7 @@ proc.time() -pm1
 m <- 5
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -465,7 +423,7 @@ m <- 6
 model_th <- m
 
 full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 
 pm1 <- proc.time()
@@ -477,63 +435,16 @@ proc.time() -pm1
 
 
 
-# Model 7
+# Model 7#########
 m <- 7
 model_th <- m
 full_model <- model.matrix(~Line + Concb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+                             neut + lymp + mono + baso + 
                              Block)
 
-dim(full_model)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
 get(paste("ms_criteria", model_th, sep = "_" ))
 list_model(full_model)$test.mat
 proc.time() -pm1
-
-
-
-# Model 8
-m <- 8
-model_th <- m
-full_model <- model.matrix(~Line + Concb + RINa + 
-                             lneut + llymp + lmono + 
-                             Block)
-#rankMatrix(full_model)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
-
-
-
-## check simulation data
-write.table(y, "simcount.txt", sep = "\t", 
-            row.names = FALSE)
-dim(y)
-plot(log(apply(y, 2, quantile , 0.75 )),
-log(apply(counts, 2, quantile , 0.75 )))
-meanline1 <- apply(y[, Line ==1]+1, 1, mean)
-meanline2 <- apply(y[, Line ==2]+1, 1, mean)
-logfc <- log2(meanline1) - log2(meanline2)
-meancount <- apply(y, 1, mean)
-par(mfrow = c(1, 2))
-plot(log(meancount), logfc)
-
-
-meanline1 <- apply(counts[, Line ==1]+1, 1, mean)
-meanline2 <- apply(counts[, Line ==2]+1, 1, mean)
-logfc <- log2(meanline1) - log2(meanline2)
-meancount <- apply(counts, 1, mean)
-plot(log(meancount), logfc)
-dev.off()
-
-## coef
-coef_beta_real <- fit$coef[]
-coef_beta_sim <- fit$coef
-
-plot(coef_beta_real[s, 4], coef_beta_sim[, 4])
-s
