@@ -1,4 +1,5 @@
 require(Matrix)
+
 # source("http://bioconductor.org/biocLite.R")
 # biocLite("edgeR")
 library(edgeR)
@@ -15,6 +16,7 @@ source("QL.results.R")
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
+                     header = T)
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
@@ -70,7 +72,8 @@ full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso 
 coef_beta <- fit$coef 
 coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
 
-cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)cor(fit$fitted.values[i,], counts[i,]))
+cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
+  cor(fit$fitted.values[i,], counts[i,]))
 set.seed(1)
 used_gene <- which(cor_fit_count >.8)
 used_beta <- coef_beta[used_gene,]
@@ -87,6 +90,9 @@ s_degene <- intersect(degene, s)
 
 ##Sim counts data
 y <- array(0, dim = c(J,31))
+sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
+                   degene_original = degene, s_degene = s_degene, y = y)
+save(sim_output, file = "sim_output.RData")
 
 for(j in 1:J){
   repeat{
@@ -374,3 +380,47 @@ assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
 get(paste("ms_criteria", model_th, sep = "_" ))
 list_model(full_model)$test.mat
 proc.time() -pm1
+write.table(y, "y.txt")                     
+                     
+load("Model7_fitdat2.RData")
+load("Model7_resultdat2.RData")
+                     
+str(fit)
+dev_real <- fit$phi.hat.pearson
+hist(dev_real[used_gene], nclass = 100)
+summary(dev_real)
+NB_real <- fit$NB.disp
+hist(NB_real, nclass = 100)
+summary(dev_real)
+plot(y= dev_real, x= NB_real)
+LRT<- fit$LRT[, 1]
+plot(1-pchisq(LRT, df=1), result$P.values[[3]][, 1], xlim = c(0, 0.05), 
+     ylim = c(0, 0.05))
+lines(c(0, 1), c(0, 1), col = 2)
+sum(1-pchisq(LRT, df=1)<=.01)
+sum(result$P.values[[3]][, 1] <= .01)
+hist(1-pchisq(LRT, df=1))
+hist(result$P.values[[3]][, 1])
+pvalue <- function(t= seq(0, 15, by = 0.01), phi = 0.3){
+  ratio =( 1-pchisq(t, df = 1))/(1 - pf(t/phi, df1= 1, df2= 20))
+  ratio
+  plot(t, ratio)
+  abline(h = 1, col = 2)
+}
+pvalue( phi =.7)
+hist(rchisq(10000, df = 20)/20)
+
+plot(pvalue)
+
+load("U:/R/RA/Data/RFI-newdata/resultsimulation/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+dev_sim <- fit$phi.hat.pearson
+hist(dev_sim, nclass = 100)
+summary(dev_sim)
+NB_sim <- fit$NB.disp
+hist(NB_sim, nclass = 100)
+summary(dev_sim)
+plot(y= dev_sim, x= NB_sim)
+
+
+
+
