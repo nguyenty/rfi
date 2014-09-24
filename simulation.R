@@ -1,6 +1,6 @@
 require(Matrix)
-source("http://bioconductor.org/biocLite.R")
-biocLite("edgeR")
+# source("http://bioconductor.org/biocLite.R")
+# biocLite("edgeR")
 library(edgeR)
 require(reshape)
 require(plyr)
@@ -354,7 +354,7 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
 m <- 1
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             neut + lymp + mono + eosi + baso + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -367,7 +367,7 @@ proc.time() -pm1
 m <- 2
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             neut + lymp + mono + eosi + baso + 
+                             lneut + llymp + lmono + leosi + lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -381,7 +381,7 @@ proc.time() -pm1
 m <- 3
 model_th <- m
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             neut + lymp + mono +  baso + 
+                             lneut + llymp + lmono +  lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -394,7 +394,7 @@ proc.time() -pm1
 m <- 4
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-                             neut + lymp + mono + baso + 
+                             lneut + llymp + lmono + lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -408,7 +408,7 @@ proc.time() -pm1
 m <- 5
 model_th <- m
 full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-                             neut + lymp + mono + baso + 
+                             lneut + llymp + lmono + lbaso + 
                              Block)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
@@ -423,7 +423,7 @@ m <- 6
 model_th <- m
 
 full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-                             neut + lymp + mono + baso + 
+                             lneut + llymp + lmono + lbaso + 
                              Block)
 
 pm1 <- proc.time()
@@ -439,7 +439,7 @@ proc.time() -pm1
 m <- 7
 model_th <- m
 full_model <- model.matrix(~Line + Concb + RINa + 
-                             neut + lymp + mono + baso + 
+                             lneut + llymp + lmono + lbaso + 
                              Block)
 
 pm1 <- proc.time()
