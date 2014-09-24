@@ -15,25 +15,12 @@ source("QL.results.R")
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
-                     header = T)
-# dim(scount)
-# scount
-# which(scount[,1] %in%"ENSSSCG00000007978")
-# which(scount[,1] %in%"ENSSSCG00000014725")
-# 
-# scount[which(scount[,1] %in%"ENSSSCG00000007978"), ]
-# scount[which(scount[,1] %in%"ENSSSCG00000014725"), ]
-
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
-
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
-
-dim(counts)
-dim(scount)
-dim(counts)
 log.offset <- log(apply(counts, 2, quantile, .75))
+
 ###List of models function ####
 covset <- read.table("covset.txt")
 attach(covset)
@@ -43,7 +30,7 @@ Line <- as.factor(Line)
 Diet <- as.factor(Diet)
 # check if the condition of count avarage is sastified
 # change to simulation setup
-#estimate the number 
+# estimate the number 
 # the following function is the same as function pval.hist
 # in the paper of Pounds et al. 2012, EBT, with the estimation of 
 # density obtained from the paper by Korbinian Strimmer 2008
@@ -80,8 +67,6 @@ ebp_line <- gre_out$h.ebp
 fdr_line <- gre_out$h.fdr
 
 full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
-dim(full_model)
-colnames(full_model)
 coef_beta <- fit$coef 
 coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
 
@@ -111,67 +96,8 @@ for(j in 1:J){
       if (mean(y[j,])>8& sum(y[j,]>0)>3) break
     }
 }
-#?rnbinom
-# par(mfrow = c(3,3))
-# for(i in 211:219)plot(counts[used_gene,][i,], y[i,])
-# for(i in 211:219)plot(counts[used_gene,][i,], s_mu[i,])
-# counts[10000,]
-# hist(coef_beta[,2], nclass = 100)
-# which(cor_fit_count)
-
-# dev.off()
-# mean(rnbinom(n=100000, size=1/s_omega[1], mu=s_mu[1,1]))
-# hist(rnbinom(n=1000, size=1/s_omega[1], mu=s_mu[1,1]), nclass = 100)
-# hist(fit$phi.hat.dev, nclass = 100)
-
 
 log.offset <- log(apply(y, 2, quantile, .75))
-dim(y)
-#plot(log(apply(counts, 2, quantile, .75)), log.offset)
-###List of models function ####
-### Case 1: no cbc data ####
-# dim(covset)
-# colnames(covset)
-# full_model <- model.matrix(~Line*Diet*RFI + Block+ Blockorder)
-# colnames(full_model)
-# rankMatrix(full_model)
-# list_model(full_model)
-log.gamma <- function(counts, disp){
-  log.g <- NULL
-  n <- length(counts)
-  for(i in 1:n){
-    log.g[i] <- sum(log(0:(counts[i]-1)+disp)) - sum(log(1:counts[i]) )
-  }
-  return(log.g)  
-}
-
-SAT.LIKE2<-function(count,disp){
-  means<-count
-  like<-disp*log(disp/(disp+means))
-  like[count!=0]<-like[count!=0]+count[count!=0]*log(means[count!=0]/(disp+means[count!=0]))+
-    log.gamma(count[count!=0],disp )
-  sum(like)
-}
-
-## Function to calculate AIC of the QL.fit model 
-
-AIC.QL <- function(counts,QL.fit.object){
-  n <- dim(counts)[2]
-  m <- dim(counts)[1]
-  disp <- 1/QL.fit.object$NB.disp
-  den.df <- QL.fit.object$den.df
-  phi.hat.dev <- QL.fit.object$phi.hat.dev
-  p <- n - den.df
-  dev <- phi.hat.dev*den.df
-  L0 <- NULL
-  for (i in 1:m){
-    L0[i] <- SAT.LIKE2(counts[i,],disp[i])
-  }
-  
-  return(dev-2*L0+2*p)
-}
-
-
 g_cdf <- function(z){
   e <- ecdf(z)
   g <- grenander(e)
