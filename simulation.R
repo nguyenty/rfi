@@ -21,7 +21,7 @@ scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
-log.offset <- log(apply(counts, 2, quantile, .75))
+
 
 ###List of models function ####
 covset <- read.table("covset.txt")
@@ -294,6 +294,11 @@ assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
 get(paste("ms_criteria", model_th, sep = "_" ))
 list_model(full_model)$test.mat
 proc.time() -pm1
+# setwd("U:\\R\\RA\\Data\\RFI-newdata\\resultsimulation")
+# getwd()
+# load("Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
+# 
+# sel_criteria(result)
 
 # Model 2####
 m <- 2
@@ -312,9 +317,9 @@ proc.time() -pm1
 # Model 3#####
 m <- 3
 model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono +  lbaso + 
-                             Block)
+full_model <- model.matrix(~Line + Diet + Concb + RINb +RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
@@ -325,9 +330,9 @@ proc.time() -pm1
 # Model 4######
 m <- 4
 model_th <- m
-full_model <- model.matrix(~Line + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + lbaso + 
-                             Block)
+full_model <- model.matrix(~Line + Diet + Concb + RINb +RINa + 
+                             lneut + llymp + lmono  + lbaso + 
+                             Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
@@ -339,9 +344,9 @@ proc.time() -pm1
 # Model 5#####
 m <- 5
 model_th <- m
-full_model <- model.matrix(~Line + RFI + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
-                             Block)
+full_model <- model.matrix(~Line +  Concb + RINb +RINa + 
+                             lneut + llymp + lmono  + lbaso + 
+                             Block + Blockorder)
 pm1 <- proc.time()
 out_model <- fit_model(full_model, model_th)
 assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
@@ -354,8 +359,8 @@ proc.time() -pm1
 m <- 6
 model_th <- m
 
-full_model <- model.matrix(~Line + Concb + RINb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
+full_model <- model.matrix(~Line +  Concb + RINb +RINa + 
+                             lneut + llymp + lmono  + lbaso + 
                              Block)
 
 pm1 <- proc.time()
