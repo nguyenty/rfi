@@ -90,8 +90,7 @@ s_degene <- intersect(degene, s)
 
 ##Sim counts data
 y <- array(0, dim = c(J,31))
-sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
-                   degene_original = degene, s_degene = s_degene, y = y)
+
 save(sim_output, file = "sim_output.RData")
 
 for(j in 1:J){
@@ -103,7 +102,11 @@ for(j in 1:J){
     }
 }
 
+sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
+                   degene_original = degene, s_degene = s_degene, y = y)
+
 log.offset <- log(apply(y, 2, quantile, .75))
+
 g_cdf <- function(z){
   e <- ecdf(z)
   g <- grenander(e)
@@ -429,3 +432,5 @@ plot(y= dev_sim, x= NB_sim)
 
 
 
+load("sim_output.RData")
+str(sim_output)
