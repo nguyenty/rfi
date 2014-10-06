@@ -105,7 +105,7 @@ for(j in 1:J){
 sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
                    degene_original = degene, s_degene = s_degene, y = y)
 
-log.offset <- log(apply(y, 2, quantile, .75))
+
 
 g_cdf <- function(z){
   e <- ecdf(z)
@@ -115,6 +115,7 @@ g_cdf <- function(z){
 sel_criteria <- function(result){
   dat <- result$P.values[[3]][,colnames(result$P.values[[3]])]
   # Crames Von Miser statistics
+  if(is.vector(dat)) dat <- as.matrix(dat)
   cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
                                         diff(c(0,g_cdf(z)$x.knots))))
   # Kolmogorow Smirnov statistics 
@@ -245,20 +246,21 @@ list_model <- function(full_model){
 
 ## Function do all the things with input Full model
 
-fit_model <- function(full_model, model_th){ # model_th <- 1
+fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
   counts <- y
+  log.offset <- log(apply(y, 2, quantile, 0.75))
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
-  fit <- QL.fit(counts, design.list, test.mat, 
-                log.offset = log.offset, print.progress=FALSE,
+  fit <- QL.fit(counts, design.list, test.mat, # dim(counts)
+                log.offset = log.offset, print.progress=TRUE,
                 Model = "NegBin")
   result<- QL.results(fit, Plot = FALSE)
-  
+  res_sel <- sel_criteria(result)
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-  model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+  model_dir <- paste(resultdir,"/", colnames(res_sel)[criteria], "/Model",model_th,name_model, sep ="")
   dir.create(model_dir, showWarnings = FALSE)
   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
@@ -281,114 +283,53 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   }
   print(paste("Model", model_th, sep = " "))
   
-  return(sel_criteria(result))
+  return(res_sel)
 }
 
 
-# Model 1####
-m <- 1
-model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
-                             Block + Blockorder)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
-# setwd("U:\\R\\RA\\Data\\RFI-newdata\\resultsimulation")
-# getwd()
-# load("Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
-# 
-# sel_criteria(result)
-
-# Model 2####
-m <- 2
-model_th <- m
-full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
-                             Block)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
 
 
-# Model 3#####
-m <- 3
-model_th <- m
-full_model <- model.matrix(~Line + Diet + Concb + RINb +RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
-                             Block + Blockorder)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
+list_cov_out <- df <- data.frame(Date=as.Date(character()),
+                                 File=character(), 
+                                 User=character(), 
+                                 stringsAsFactors=FALSE) 
 
-# Model 4######
-m <- 4
-model_th <- m
-full_model <- model.matrix(~Line + Diet + Concb + RINb +RINa + 
-                             lneut + llymp + lmono  + lbaso + 
-                             Block + Blockorder)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
+for(i in 1:4){ # i <- 2
+  model_th <- m
+  full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                               lneut + llymp + lmono + leosi + lbaso + 
+                               Block + Blockorder)
+  repeat{
+    pm1 <- proc.time()
+    out_model <- fit_model(full_model, model_th, i)
+    assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+    proc.time() -pm1
+    ms_val <- get(paste("ms_criteria", model_th, sep = "_" ))
+    cov_del <- ms_val[1,i] # cov_del <- 14; i <- 1
+    
+    cov_set <- list_model(full_model)$test.mat # dim(cov_set)
+    res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
+    list_cov_out <- rbind(list_cov_out, res)
+    if (cov_del ==1) break
+    block_ind <- grep("Block2", colnames(full_model))
+    blockorder_ind <-grep("Blockorder", colnames(full_model))
+    
+    if(length(block_ind)!=0){
+      if(cov_del+1 == cov_set["Block",2])
+        full_model <- full_model[, -c(block_ind, block_ind+1, block_ind+2)]
+    }
+    
+    if(length(blockorder_ind)!=0){
+      if(cov_del+1 == cov_set["Blockorder", 2])
+      full_model <- full_model[, -blockorder_ind]
+    }
+    
+    full_model <- full_model[, -(cov_del +1)]
+    model_th <- model_th +1
+  }
+}
+list_cov_out
 
-
-# Model 5#####
-m <- 5
-model_th <- m
-full_model <- model.matrix(~Line +  Concb + RINb +RINa + 
-                             lneut + llymp + lmono  + lbaso + 
-                             Block + Blockorder)
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
-
-
-# Model 6########
-m <- 6
-model_th <- m
-
-full_model <- model.matrix(~Line +  Concb + RINb +RINa + 
-                             lneut + llymp + lmono  + lbaso + 
-                             Block)
-
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
-
-
-
-# Model 7#########
-m <- 7
-model_th <- m
-full_model <- model.matrix(~Line + Concb + RINa + 
-                             lneut + llymp + lmono + lbaso + 
-                             Block)
-
-pm1 <- proc.time()
-out_model <- fit_model(full_model, model_th)
-assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
-get(paste("ms_criteria", model_th, sep = "_" ))
-list_model(full_model)$test.mat
-proc.time() -pm1
-write.table(y, "y.txt")                     
                      
 load("Model7_fitdat2.RData")
 load("Model7_resultdat2.RData")
