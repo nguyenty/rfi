@@ -78,9 +78,6 @@ attach(covset)
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>1 ,-1])
 
-dim(counts)
-dim(scount)
-dim(counts)
 log.offset <- log(apply(counts, 2, quantile, .75))
 ###List of models function ####
 ### Case 1: no cbc data ####
@@ -90,41 +87,6 @@ log.offset <- log(apply(counts, 2, quantile, .75))
 # colnames(full_model)
 # rankMatrix(full_model)
 # list_model(full_model)
-log.gamma <- function(counts, disp){
-  log.g <- NULL
-  n <- length(counts)
-  for(i in 1:n){
-    log.g[i] <- sum(log(0:(counts[i]-1)+disp)) - sum(log(1:counts[i]) )
-  }
-  return(log.g)  
-}
-
-SAT.LIKE2<-function(count,disp){
-  means<-count
-  like<-disp*log(disp/(disp+means))
-  like[count!=0]<-like[count!=0]+count[count!=0]*log(means[count!=0]/(disp+means[count!=0]))+
-    log.gamma(count[count!=0],disp )
-  sum(like)
-}
-
-## Function to calculate AIC of the QL.fit model 
-
-AIC.QL <- function(counts,QL.fit.object){
-  n <- dim(counts)[2]
-  m <- dim(counts)[1]
-  disp <- 1/QL.fit.object$NB.disp
-  den.df <- QL.fit.object$den.df
-  phi.hat.dev <- QL.fit.object$phi.hat.dev
-  p <- n - den.df
-  dev <- phi.hat.dev*den.df
-  L0 <- NULL
-  for (i in 1:m){
-    L0[i] <- SAT.LIKE2(counts[i,],disp[i])
-  }
-  
-  return(dev-2*L0+2*p)
-}
-
 
 g_cdf <- function(z){
   e <- ecdf(z)
@@ -135,6 +97,7 @@ g_cdf <- function(z){
 sel_criteria <- function(result){
   dat <- result$P.values[[3]][,colnames(result$P.values[[3]])]
   # Crames Von Miser statistics
+  dat <- as.matrix(dat)
   cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
                                         diff(c(0,g_cdf(z)$x.knots))))
   # Kolmogorow Smirnov statistics 
@@ -265,19 +228,20 @@ if (all(variable_name != "Block") & any(variable_name == "Blockorder")){
 
 ## Function do all the things with input Full model
 
-fit_model <- function(full_model, model_th){ # model_th <- 1
+
+fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
-  fit <- QL.fit(counts, design.list, test.mat, 
+  fit <- QL.fit(counts, design.list, test.mat, # dim(counts)
                 log.offset = log.offset, print.progress=TRUE,
                 Model = "NegBin")
   result<- QL.results(fit, Plot = FALSE)
-
+  res_sel <- sel_criteria(result)
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-  model_dir <- paste(resultdir, "/Model",model_th,name_model, sep ="")
+  model_dir <- paste(resultdir,"/", colnames(res_sel)[criteria], "/Model",model_th,name_model, sep ="")
   dir.create(model_dir, showWarnings = FALSE)
   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
@@ -300,11 +264,59 @@ fit_model <- function(full_model, model_th){ # model_th <- 1
   }
   print(paste("Model", model_th, sep = " "))
   
-  return(sel_criteria(result))
+  return(res_sel)
 }
 
 
-# ### check correlation of cbc data####
+list_cov_out_nocbc2 <-  data.frame(Date=as.Date(character()),
+                             File=character(), 
+                             User=character(), 
+                             stringsAsFactors=FALSE) 
+
+for(i in 4){ # i <- 2
+  model_th <- 1
+  full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                               Block + Blockorder)
+  repeat{
+    pm1 <- proc.time()
+    out_model <- fit_model(full_model, model_th, i)
+    assign(paste("ms_criteria", model_th, sep = "_" ),out_model)
+    proc.time() -pm1
+    ms_val <- get(paste("ms_criteria", model_th, sep = "_" ))
+    cov_del <- ms_val[1,i] # cov_del <- 14; i <- 1
+    
+    cov_set <- list_model(full_model)$test.mat # dim(cov_set)
+    res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
+    list_cov_out_nocbc2 <- rbind(list_cov_out_nocbc2, res)
+    if (cov_del ==1) break
+    block_ind <- grep("Block2", colnames(full_model))
+    blockorder_ind <-grep("Blockorder", colnames(full_model))
+    
+    if(length(block_ind)!=0){
+      if(cov_del+1 == cov_set["Block",2])
+        full_model <- full_model[, -c(block_ind, block_ind+1, block_ind+2)]
+    }
+    
+    if(length(blockorder_ind)!=0){
+      if(cov_del+1 == cov_set["Blockorder", 2])
+        full_model <- full_model[, -blockorder_ind]
+    }
+    
+    full_model <- full_model[, -(cov_del +1)]
+    model_th <- model_th +1
+  }
+}
+write.csv(list_cov_out_nocbc1, file = "list_cov_out_nocbc1.csv", row.names = FALSE)
+
+write.csv(list_cov_out, file = "list_cov_out.csv", row.names = FALSE)
+
+out4<-read.csv("list_cov_out4.csv") 
+
+out3 <- read.csv("list_cov_out3.csv")
+
+out <- rbind(list_cov_out[1:18, ], out3, out4)
+
+### check correlation of cbc data####
 # #pairs(cbind(lneut, llymp, lmono, leosi, lbaso))
 # 
 # panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
