@@ -290,12 +290,12 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
 
 
 
-list_cov_out3 <-  data.frame(Date=as.Date(character()),
+list_cov_out4 <-  data.frame(Date=as.Date(character()),
                                  File=character(), 
                                  User=character(), 
                                  stringsAsFactors=FALSE) 
 
-for(i in 3){ # i <- 2
+for(i in 4){ # i <- 2
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
@@ -310,7 +310,7 @@ for(i in 3){ # i <- 2
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
     res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
-    list_cov_out3 <- rbind(list_cov_out3, res)
+    list_cov_out4 <- rbind(list_cov_out4, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
@@ -329,9 +329,19 @@ for(i in 3){ # i <- 2
     model_th <- model_th +1
   }
 }
-write.csv(list_cov_out3, file = "list_cov_out3.csv", row.names = FALSE)
+write.csv(list_cov_out4, file = "list_cov_out4.csv", row.names = FALSE)
 
-                     
+write.csv(list_cov_out, file = "list_cov_out.csv", row.names = FALSE)
+
+out4<-read.csv("list_cov_out4.csv") 
+
+out3 <- read.csv("list_cov_out3.csv")
+
+out <- rbind(list_cov_out[1:18, ], out3, out4)
+
+
+write.csv(out, file = "out.csv")
+?merge
 load("Model7_fitdat2.RData")
 load("Model7_resultdat2.RData")
                      
