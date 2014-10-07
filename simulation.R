@@ -105,7 +105,8 @@ for(j in 1:J){
 sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
                    degene_original = degene, s_degene = s_degene, y = y)
 
-
+load("sim_output.RData")
+y <- sim_output$y
 
 g_cdf <- function(z){
   e <- ecdf(z)
@@ -289,13 +290,13 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
 
 
 
-list_cov_out <- df <- data.frame(Date=as.Date(character()),
+list_cov_out3 <-  data.frame(Date=as.Date(character()),
                                  File=character(), 
                                  User=character(), 
                                  stringsAsFactors=FALSE) 
 
-for(i in 1:4){ # i <- 2
-  model_th <- m
+for(i in 3){ # i <- 2
+  model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
                                Block + Blockorder)
@@ -309,7 +310,7 @@ for(i in 1:4){ # i <- 2
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
     res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
-    list_cov_out <- rbind(list_cov_out, res)
+    list_cov_out3 <- rbind(list_cov_out3, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
@@ -328,7 +329,7 @@ for(i in 1:4){ # i <- 2
     model_th <- model_th +1
   }
 }
-list_cov_out
+write.csv(list_cov_out3, file = "list_cov_out3.csv", row.names = FALSE)
 
                      
 load("Model7_fitdat2.RData")
