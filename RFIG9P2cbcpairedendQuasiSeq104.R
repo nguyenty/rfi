@@ -6,13 +6,14 @@ require(plyr)
 library(fields)
 library(reshape)
 library(fdrtool)
-source("QL.fit.R")
-source("NBDev.R")
-source("PoisDev.R")
-source("QL.results.R")
+library(QuasiSeq)
+# source("QL.fit.R")
+# source("NBDev.R")
+# source("PoisDev.R")
+# source("QL.results.R")
 
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
-resultdir <- "U:/R/RA/Data/RFI-newdata/resultpairedcbc"
+resultdir <- "U:/R/RA/Data/RFI-newdata/QuasiSeq104/resultpairedcbc"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
 row.names(scount) <- scount[,1]
@@ -264,7 +265,7 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
 }
 
 
-out_pairedend_cbc <-  data.frame(Date=as.Date(character()),
+out_pairedend_cbcquasiseq104 <-  data.frame(Date=as.Date(character()),
                                    File=character(), 
                                    User=character(), 
                                    stringsAsFactors=FALSE) 
@@ -284,7 +285,7 @@ for(i in 4){ # i <- 1
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
     res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
-    out_pairedend_cbc <- rbind(out_pairedend_cbc, res)
+    out_pairedend_cbcquasiseq104 <- rbind(out_pairedend_cbcquasiseq104, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
@@ -304,4 +305,4 @@ for(i in 4){ # i <- 1
   }
 }
 
-write.csv(out_pairedend_cbc, "out_pairedend_cbc.csv", row.names = F)
+write.csv(out_pairedend_cbcquasiseq104, "out_pairedend_cbcquasiseq104.csv", row.names = F)

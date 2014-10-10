@@ -6,18 +6,15 @@ require(plyr)
 library(fields)
 library(reshape)
 library(fdrtool)
-source("QL.fit.R")
-source("NBDev.R")
-source("PoisDev.R")
-source("QL.results.R")
+library("QuasiSeq")
 
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
-resultdir <- "U:/R/RA/Data/RFI-newdata/resultpairedcbc"
+resultdir <- "U:/R/RA/Data/RFI-newdata/QuasiSeq104/resultpairedlogcbc"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
 row.names(scount) <- scount[,1]
 # dim(scount)
-# scount
+# str(scount)
 # which(scount[,1] %in%"ENSSSCG00000007978")
 # which(scount[,1] %in%"ENSSSCG00000014725")
 # 
@@ -26,6 +23,7 @@ row.names(scount) <- scount[,1]
 
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
+
 
 cbc <- read.table('CBC data for pigs with RNA-seq data avaible.txt',
                   header =T)
@@ -79,11 +77,10 @@ attach(covset)
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
-write.csv(counts, file = "counts_12280.csv")
 dim(counts)
-dim(scount)
-dim(counts)
-log.offset <- log(apply(counts, 2, quantile, .75))
+str(counts)
+
+
 g_cdf <- function(z){
   e <- ecdf(z)
   g <- grenander(e)
@@ -229,10 +226,13 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
+  log.offset <- log(apply(counts, 2, quantile, .75))
   fit <- QL.fit(counts, design.list, test.mat, # dim(counts)
                 log.offset = log.offset, print.progress=TRUE,
                 Model = "NegBin")
   result<- QL.results(fit, Plot = FALSE)
+#   colnames(result$P.values[[3]])
+#   str(fit)
   res_sel <- sel_criteria(result)
   k <- nrow(test.mat)
   name_model <- NULL 
@@ -264,7 +264,7 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
 }
 
 
-out_pairedend_cbc <-  data.frame(Date=as.Date(character()),
+out_pairedend_logcbcquasiseq104 <-  data.frame(Date=as.Date(character()),
                                    File=character(), 
                                    User=character(), 
                                    stringsAsFactors=FALSE) 
@@ -272,7 +272,7 @@ out_pairedend_cbc <-  data.frame(Date=as.Date(character()),
 for(i in 4){ # i <- 1
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                               neut + lymp + mono + eosi + baso + 
+                               lneut + llymp + lmono + leosi + lbaso + 
                                Block + Blockorder)
   repeat{
     pm1 <- proc.time()
@@ -284,7 +284,7 @@ for(i in 4){ # i <- 1
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
     res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
-    out_pairedend_cbc <- rbind(out_pairedend_cbc, res)
+    out_pairedend_logcbcquasiseq104 <- rbind(out_pairedend_logcbcquasiseq104, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
@@ -304,4 +304,27 @@ for(i in 4){ # i <- 1
   }
 }
 
-write.csv(out_pairedend_cbc, "out_pairedend_cbc.csv", row.names = F)
+write.csv(out_pairedend_logcbcquasiseq104, "out_pairedend_logcbcquasiseq104.csv", row.names = F)
+
+read.csv("out_pairedend_logcbcquasiseq104.csv")
+
+
+### Check model 7 alone ######
+
+full_model <- model.matrix(~ Line+Concb+RINa+lneut+llymp+lmono+lbaso+Block)
+red_model <-  model.matrix(~ Concb+RINa+lneut+llymp+lmono+lbaso+Block)
+design.list <- vector("list", 2)
+design.list[[1]] <- full_model
+design.list[[2]] <- red_model
+fit2 <- QL.fit(counts, design.list,  # dim(counts)
+              log.offset = log.offset, print.progress=TRUE,
+              Model = "NegBin")
+result2<- QL.results(fit2, Plot = FALSE)
+sum(result2$Q.values[[3]]<=0.05)
+hist(result2$P.values[[3]], nclass = 100)
+str(result2$Q.values)
+str(fit2)
+library("QuasiSeq")
+ind1 <- which(result2$Q.values[[3]]<=0.05)
+ind2 <- which(r[[i]]$Q.values[[3]][,"Line"]<0.05)
+intersect(ind1, ind2)

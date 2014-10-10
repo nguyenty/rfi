@@ -386,3 +386,13 @@ plot(y= dev_sim, x= NB_sim)
 
 load("sim_output.RData")
 str(sim_output)
+
+
+load("U:/R/RA/Data/RFI-newdata/resultsimulation/ad/Model6.Line.Concb.RINa.lneut.llymp.lmono.leosi.lbaso.Block/Model6_result.RData")
+
+which(result$Q.values[[3]][,"Line"]<.05)
+sum(result$Q.values[[3]][,"leosi"]<.05)
+
+degene <- which(ebp_line[used_gene]<0.5)
+table(ebp_line[used_gene]<0.5, result$Q.values[[3]][,"Line"]<.05)
+21/468
