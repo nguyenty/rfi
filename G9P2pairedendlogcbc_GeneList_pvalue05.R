@@ -68,3 +68,7 @@ dim(GeneList[(GeneList$log2fc.line.logcbc>=1)&
                (GeneList$log2fc.line.cbc>=1)& 
                (GeneList$qvalue.line.cbc<=0.1),])
 
+cor(GeneList[, 1], GeneList[,4])
+cor(log10(GeneList[,2]), log10(GeneList[,5]))
+cor(log10(GeneList[,3]), log10(GeneList[,6]))
+pairs(GeneList)

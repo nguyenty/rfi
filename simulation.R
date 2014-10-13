@@ -30,6 +30,25 @@ Blockorder <- as.factor(Blockorder)
 Block <- as.factor(Block)
 Line <- as.factor(Line)
 Diet <- as.factor(Diet)
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+
+pvalue_line <- result$P.values[[3]][,"Line"]
+qvalue_line <- result$Q.values[[3]][,"Line"]
+gre_out <- pval.hist.grenander(pvalue_line)
+ebp_line <- gre_out$h.ebp
+fdr_line <- gre_out$h.fdr
+
+full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
+coef_beta <- fit$coef 
+coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+
+cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
+  cor(fit$fitted.values[i,], counts[i,]))
+set.seed(1)
+used_gene <- which(cor_fit_count >.8)
+used_beta <- coef_beta[used_gene,]
+
 # check if the condition of count avarage is sastified
 # change to simulation setup
 # estimate the number 
@@ -59,54 +78,9 @@ pval.hist.grenander <- function(p.value){
                edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
                pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
 }
-load("Model7_fitdat2.RData")
-load("Model7_resultdat2.RData")
 
-pvalue_line <- result$P.values[[3]][,"Line"]
-qvalue_line <- result$Q.values[[3]][,"Line"]
-gre_out <- pval.hist.grenander(pvalue_line)
-ebp_line <- gre_out$h.ebp
-fdr_line <- gre_out$h.fdr
-
-full_model <- model.matrix(~Line + Concb + RINa + lneut + llymp + lmono + lbaso + Block)
-coef_beta <- fit$coef 
-coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
-
-cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
-  cor(fit$fitted.values[i,], counts[i,]))
-set.seed(1)
-used_gene <- which(cor_fit_count >.8)
-used_beta <- coef_beta[used_gene,]
-J <- dim(used_beta)[1]
-s <- sample(J, J)
-s <- s[order(s)]
-used_omega <- fit$NB.disp[used_gene]
-used_count <- counts[used_gene,]
-degene <- which(ebp_line[used_gene]<0.5)
-mu <- fit$fitted[used_gene,]
-s_mu <- mu[s,]
-s_omega <- used_omega[s]
-s_degene <- intersect(degene, s) 
-
-##Sim counts data
-y <- array(0, dim = c(J,31))
-
-save(sim_output, file = "sim_output.RData")
-
-for(j in 1:J){
-  repeat{
-      for(k in 1:31){
-        y[j,k]  <- rnbinom(n=1, size=1/s_omega[j], mu=s_mu[j,k])
-      }
-      if (mean(y[j,])>8& sum(y[j,]>0)>3) break
-    }
-}
-
-sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
-                   degene_original = degene, s_degene = s_degene, y = y)
-
-load("sim_output.RData")
-y <- sim_output$y
+#load("sim_output.RData")
+#y <- sim_output$y
 
 g_cdf <- function(z){
   e <- ecdf(z)
@@ -199,13 +173,6 @@ list_model <- function(full_model){
     }
     
     design.list[[ind_block + 1]] <- full_model[,-((ind_block+1):(ind_block+3))]
-    # row.names(test.mat)[ind_block] <- "Block"
-    # row.names(test.mat)
-    #colnames(design.list[[ind_block+1]])
-    #     design.list[[ind_block +2]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-    #     row.names(test.mat)[ind_block + 1] <- "Blockorder" 
-    # colnames(design.list[[ind_block+2]])
-    # colnames(design.list[[1]])
     if(ind_block + 3 < n){ # i <- 15 # colnames(design.list[[i]])
       for(i in ((ind_block+2):(n-2))){
         design.list[[i]] <- full_model[,-(i + 2)] # colnames (full_model)
@@ -228,11 +195,7 @@ list_model <- function(full_model){
     }
     
     design.list[[ind_blockorder + 1]] <- full_model[,-((ind_blockorder+1):(ind_blockorder+7))]
-    # row.names(test.mat)[[ind_blockorder]]
-    # colnames(design.list[[ind_blockorder+1]])
     row.names(test.mat)[ind_blockorder] <- "Blockorder" 
-    # colnames(design.list[[ind_block+2]])
-    # colnames(design.list[[1]])
     if(ind_blockorder + 7 < n){ # i <- 15 # colnames(design.list[[i]])
       for(i in ((ind_blockorder+2):(n-6))){
         design.list[[i]] <- full_model[,-(i + 6)] # colnames (full_model)
@@ -246,18 +209,30 @@ list_model <- function(full_model){
 
 
 ## Function do all the things with input Full model
+sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
+                   degene_original = degene, s=s, s_degene = s_degene, y = y)
 
-fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
-  counts <- y
+fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <- 1
+  y <- sim_output$y
+  degene <- sim_output$degene
+  s <- sim_output$s
   log.offset <- log(apply(y, 2, quantile, 0.75))
+  
+  
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
-  fit <- QL.fit(counts, design.list, test.mat, # dim(counts)
+  fit2 <- QL.fit(y, design.list, test.mat, # dim(counts)
                 log.offset = log.offset, print.progress=TRUE,
                 Model = "NegBin")
-  result<- QL.results(fit, Plot = FALSE)
-  res_sel <- sel_criteria(result)
+  result2<- QL.results(fit2, Plot = FALSE)
+
+  out <- table(s%in%degene, result2$Q.values[[3]][,"Line"]<.05)
+#   out[1,2]/out[2,2]
+#   out
+#   
+  
+  res_sel <- sel_criteria(result2)
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
@@ -268,7 +243,7 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
   for(i in 1:(nrow(test.mat))){
     postscript(paste(model_dir,"/Model", 
                      model_th, row.names(test.mat)[i],".eps", sep =""))
-    hist(result$P.values[[3]][,i], 
+    hist(result$P.values[[3]][,i],  # i <- 8
          main=row.names(test.mat)[i],
          xlab = "p-values", col = 'green',nclass=100)
     box()
@@ -286,6 +261,35 @@ fit_model <- function(full_model, model_th, criteria){ # model_th <- 1
   
   return(res_sel)
 }
+
+J <- dim(used_beta)[1]
+size <- J
+s <- sample(J, size = size)
+s <- s[order(s)]
+used_omega <- fit$NB.disp[used_gene]
+used_count <- counts[used_gene,]
+degene <- which(ebp_line[used_gene]<0.5)
+mu <- fit$fitted[used_gene,]
+s_mu <- mu[s,]
+s_omega <- used_omega[s]
+s_degene <- intersect(degene, s) 
+
+##Sim counts data
+y <- array(0, dim = c(size,31))
+
+
+
+for(j in 1:size){
+  repeat{
+    for(k in 1:31){
+      y[j,k]  <- rnbinom(n=1, size=1/s_omega[j], mu=s_mu[j,k])
+    }
+    if (mean(y[j,])>8& sum(y[j,]>0)>3) break
+  }
+}
+
+sim_output <- list(used_gene = used_gene, used_omega = used_omega, used_count = used_count, 
+                   degene_original = degene, s = s,  s_degene = s_degene, y = y)
 
 
 
