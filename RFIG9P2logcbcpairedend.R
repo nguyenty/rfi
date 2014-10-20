@@ -271,7 +271,7 @@ out_pairedend_logcbc <-  data.frame(Date=as.Date(character()),
                                    User=character(), 
                                    stringsAsFactors=FALSE) 
 
-for(i in 4){ # i <- 1
+for(i in 4){ # i <- 4 pvalue05
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
@@ -308,3 +308,39 @@ for(i in 4){ # i <- 1
 
 write.csv(out_pairedend_logcbc, "out_pairedend_logcbc.csv", row.names = F)
 
+read.csv("out_pairedend_logcbc.csv")
+
+
+### Check model 7 alone ######
+
+full_model <- model.matrix(~ Line+Concb+RINa+lneut+llymp+lmono+lbaso+Block)
+red_model <-  model.matrix(~ Concb+RINa+llymp+lmono+lbaso+lneut+Block)
+design.list <- vector("list", 2)
+design.list[[1]] <- full_model
+design.list[[2]] <- red_model
+fit2 <- QL.fit(counts, design.list,  # dim(counts)
+              log.offset = log.offset, print.progress=TRUE,
+              Model = "NegBin")
+result2<- QL.results(fit2, Plot = FALSE)
+sum(result2$Q.values[[3]]<=0.05)
+hist(result2$P.values[[3]], nclass = 100)
+str(result2$Q.values)
+str(fit2)
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+sum(result$Q.values[[3]][, "Line"]<=0.05)
+hist(result$P.values[[3]][, "Line"], nclass = 100)
+
+
+library("QuasiSeq")
+ind1 <- which(result2$Q.values[[3]]<=0.05)
+ind2 <- which(r[[i]]$Q.values[[3]][,"Line"]<0.05)
+intersect(ind1, ind2)
+### fit model 7 alone #########
+
+model_th <- 7
+full_model <- model.matrix(~Line + Concb +  + RINa + 
+                             lneut + llymp + lmono  + lbaso + 
+                             Block )
+
+out_model <- fit_model(full_model, model_th, 4)
