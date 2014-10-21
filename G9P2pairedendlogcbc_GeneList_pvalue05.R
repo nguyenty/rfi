@@ -55,13 +55,23 @@ GeneList <- as.data.frame(cbind(
 
 rownames(GeneList) <- counts[,1]
 write.csv(GeneList, "GeneList.csv")
+GeneList <- read.csv("GeneList.csv")
 dim(GeneList[(GeneList$qvalue.line.cbc<=0.05),])
+
+
+dim(GeneList[(GeneList$log2fc.line.logcbc>=1)&
+               (GeneList$qvalue.line.logcbc<=0.05),])
 
 dim(GeneList[(GeneList$log2fc.line.logcbc>=1)&
                (GeneList$qvalue.line.logcbc<=0.1),])
 
-dim(GeneList[(GeneList$log2fc.line.cbc>=1)&
-               (GeneList$qvalue.line.cbc<=0.05),])
+dim(GeneList[(GeneList$log2fc.line.logcbc>=1)&
+               (GeneList$qvalue.line.logcbc<=0.15),])
+
+
+dim(GeneList[(GeneList$log2fc.line.logcbc>=1)&
+               (GeneList$qvalue.line.logcbc<=0.20),])
+
 
 dim(GeneList[(GeneList$log2fc.line.logcbc>=1)& 
                (GeneList$qvalue.line.logcbc<=0.1)&

@@ -18,8 +18,8 @@ beta0 ~ dnorm(0, 100)
 sigma0 ~ dunif(0, 100)
 }
 "
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_fit.RData")
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/ks/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/ks/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
 
 data <- list(y = fit$coef[,3])
 
@@ -38,6 +38,4 @@ beta.0 <- mean(resm[[1]][,"beta0"])
 new.beta <- fit$coef[,3]*(1/sigma.i^2)/(1/sigma.i^2 + 1/sigma.0^2) + 
                             beta.0 * (1/sigma.0^2)/(1/sigma.i^2 + 1/sigma.0^2)
 
-hist(new.beta, nclass = 1000)
-hist(fit$coef[,3], nclass = 1000)
-hist(sigma.i, nclass = 100)
+save(new.beta, file = "new.beta.RData")
