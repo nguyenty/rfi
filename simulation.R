@@ -81,7 +81,7 @@ cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
 set.seed(1)
 used_gene <- which(cor_fit_count >.8)
 used_beta <- coef_beta[used_gene,]
-
+# length(used_gene)
 #dim(coef_beta)
 #mean(coef_beta[,2]!=0)
 used_omega <- fit$NB.disp[used_gene]
@@ -100,22 +100,22 @@ sel_criteria <- function(result){
   dat <- result$P.values[[3]][,colnames(result$P.values[[3]])]
   # Crames Von Miser statistics
   if(is.vector(dat)) dat <- as.matrix(dat)
-  cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
-                                        diff(c(0,g_cdf(z)$x.knots))))
-  # Kolmogorow Smirnov statistics 
-  ks <- apply(dat, 2, function(z)max((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2))
-  
-  # Anderson-Darling statistics
-  ad <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2/
-                                       g_cdf(z)$x.knots*(1-g_cdf(z)$x.knots)*
-                                       diff(c(0,g_cdf(z)$x.knots))))
+#   cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
+#                                         diff(c(0,g_cdf(z)$x.knots))))
+#   # Kolmogorow Smirnov statistics 
+#   ks <- apply(dat, 2, function(z)max((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2))
+#   
+#   # Anderson-Darling statistics
+#   ad <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2/
+#                                        g_cdf(z)$x.knots*(1-g_cdf(z)$x.knots)*
+#                                        diff(c(0,g_cdf(z)$x.knots))))
   # Proportion of pvalue less than 0.05
   pvalue_05 <- apply(dat<=0.05, 2, sum)
   
-  out <- data.frame(pvalue05 = order(pvalue_05),
-                    ad = order(ad),
-                    cvm = order(cvm),
-                    ks = order(ks))
+  out <- data.frame(pvalue05 = order(pvalue_05))
+#                     ad = order(ad),
+#                     cvm = order(cvm),
+#                     ks = order(ks))
   
   return(out)
 }
@@ -239,8 +239,9 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
   out2 <- table(s%in%degene, result2$Q.values[[3]][,"Line"]<.05) # mean(s%in%degene) mean(result2$Q.values[[3]][,"Line"]<.05)
   if(dim(out2)[2]==2){
     rt <- out2[1,2] + out2[2,2]
-    fdr <- out2[1,2]/rt  
-  } else{ rt <- 0; fdr <- 0
+    vt <- out2[1,2]
+    fdr <- vt/rt  
+  } else{  rt <- 0; fdr <- 0
     
   }
  
@@ -281,14 +282,15 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 
 fdr.est <- rt.est <- best.model.est <- list()
 
-for(nrep in 1:50) # nrep <- 1
+for(nrep in 5:50) # nrep <- 1
 {
   test.mat.model <- list()
+  #vt.model <- NULL
   rt.model <- NULL
   fdr.model <- NULL
 J <- dim(used_beta)[1]
 #used_gene is the list of indexes of genes from the original data 12280 
-size <- 2000
+size <- 5000
 s <- sample( dim(used_beta)[1], size = size)
 s <- s[order(s)]
 s_mu <- mu[s,]
@@ -310,12 +312,12 @@ for(j in 1:size){
   }
 }
 # nrep <- 1
-sim_output <- list(used_gene = used_gene, used_omega = used_omega, 
+sim_outputnew <- list(used_gene = used_gene, used_omega = used_omega, 
                    used_count = used_count, 
                    degene_original = degene, 
                    s = s,  s_degene = s_degene, 
                    y = y, nrep = nrep)
-save(sim_output, file = paste0("sim_output_", nrep, ".RData"))
+save(sim_outputnew, file = paste0("sim_outputnew_", nrep, ".RData"))
 
 
 
@@ -332,8 +334,9 @@ for(i in 1){ # i <- 1
   #colnames(full_model)
   repeat{
     pm1 <- proc.time()
-    out_model <- fit_model(full_model, model_th, i, sim_output)
+    out_model <- fit_model(full_model, model_th, i, sim_outputnew)
     
+    #vt.model[model_th] <- out_model$vt
     rt.model[model_th] <- out_model$rt
     fdr.model[model_th] <- out_model$fdr
     test.mat.model[[model_th]] <- list_model(full_model)$test.mat
@@ -344,7 +347,9 @@ for(i in 1){ # i <- 1
     cov_del <- ms_val[1,i] # cov_del <- 14; i <- 1
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
-    res <- data.frame(criteria = colnames(ms_val)[i], model = model_th, cov_del = rownames(cov_set)[ cov_del])
+    res <- data.frame(criteria = colnames(ms_val)[i], 
+                      model = model_th, 
+                      cov_del = rownames(cov_set)[ cov_del])
     list_cov_out1 <- rbind(list_cov_out1, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
@@ -368,12 +373,12 @@ for(i in 1){ # i <- 1
   best.model.est[[nrep]] <- test.mat.model[[which.max(rt.model)]]
   fdr.est[[nrep]] <- fdr.model
   rt.est[[nrep]] <- rt.model
-res.out <- list(best.model.est = best.model.est[[nrep]], 
+res.outnew <- list(best.model.est = best.model.est[[nrep]], 
                 fdr.est = fdr.est[[nrep]],
-                rt.rest = rt.est[[nrep ]])
-save(res.out, file = paste0("res.out_", nrep, ".RData"))
- write.csv(list_cov_out1, file = paste0("list_cov_out1_",nrep,  ".csv"), row.names = FALSE)
- write.csv(list_cov_out1, file = paste0("list_cov_out2_",nrep,  ".csv"), row.names = TRUE)
+                rt.est = rt.est[[nrep ]])
+save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
+ write.csv(list_cov_out1, file = paste0("list_cov_out1new_",nrep,  ".csv"), row.names = FALSE)
+ #write.csv(list_cov_out1, file = paste0("list_cov_out2_",nrep,  ".csv"), row.names = TRUE)
 #  write.csv(best.model, file = paste0("best_model1_", nrep, ".csv"), row.names = TRUE)
 #  write.csv(best.model, file = paste0("best_model2_", nrep, ".csv"), row.names = TRUE)
 }
@@ -382,66 +387,16 @@ save(res.out, file = paste0("res.out_", nrep, ".RData"))
 fdr.est
 rt.est
 best.model
-# out4<-read.csv("list_cov_out1.csv") 
-# 
-# out3 <- read.csv("list_cov_out3.csv")
-# 
-# out <- rbind(list_cov_out[1:18, ], out3, out4)
-# 
-# 
-# write.csv(out, file = "out.csv")
-# ?merge
-# load("Model7_fitdat2.RData")
-# load("Model7_resultdat2.RData")
-#                      
-# str(fit)
-# dev_real <- fit$phi.hat.pearson
-# hist(dev_real[used_gene], nclass = 100)
-# summary(dev_real)
-# NB_real <- fit$NB.disp
-# hist(NB_real, nclass = 100)
-# summary(dev_real)
-# plot(y= dev_real, x= NB_real)
-# LRT<- fit$LRT[, 1]
-# plot(1-pchisq(LRT, df=1), result$P.values[[3]][, 1], xlim = c(0, 0.05), 
-#      ylim = c(0, 0.05))
-# lines(c(0, 1), c(0, 1), col = 2)
-# sum(1-pchisq(LRT, df=1)<=.01)
-# sum(result$P.values[[3]][, 1] <= .01)
-# hist(1-pchisq(LRT, df=1))
-# hist(result$P.values[[3]][, 1])
-# pvalue <- function(t= seq(0, 15, by = 0.01), phi = 0.3){
-#   ratio =( 1-pchisq(t, df = 1))/(1 - pf(t/phi, df1= 1, df2= 20))
-#   ratio
-#   plot(t, ratio)
-#   abline(h = 1, col = 2)
-# }
-# pvalue( phi =.7)
-# hist(rchisq(10000, df = 20)/20)
-# 
-# plot(pvalue)
-# 
-# load("U:/R/RA/Data/RFI-newdata/resultsimulation/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-# dev_sim <- fit$phi.hat.pearson
-# hist(dev_sim, nclass = 100)
-# summary(dev_sim)
-# NB_sim <- fit$NB.disp
-# hist(NB_sim, nclass = 100)
-# summary(dev_sim)
-# plot(y= dev_sim, x= NB_sim)
-# 
-# 
-# 
-# 
-# load("sim_output.RData")
-# str(sim_output)
-# 
-# 
-# load("U:/R/RA/Data/RFI-newdata/resultsimulation/ad/Model6.Line.Concb.RINa.lneut.llymp.lmono.leosi.lbaso.Block/Model6_result.RData")
-# 
-# which(result$Q.values[[3]][,"Line"]<.05)
-# sum(result$Q.values[[3]][,"leosi"]<.05)
-# 
-# degene <- which(ebp_line[used_gene]<0.5)
-# table(ebp_line[used_gene]<0.5, result$Q.values[[3]][,"Line"]<.05)
-# 21/468
+
+## combine all results together ######
+nrep <- 10
+res.all <- list()
+
+for( i in 1:nrep){
+  path <- paste0("res.out_", i, ".RData")
+  load(path)
+  res.all[[i]] <- res.out
+}
+
+str(res.all)
+res.all[[5]]
