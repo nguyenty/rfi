@@ -1,5 +1,6 @@
 counts <- read.csv("counts_12280.csv")
 dir <- "U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/"
+#dir <- "U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/ks/"
 #dir <- "U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue05/"
 #dir <- "U:/R/RA/Data/RFI-newdata/resultsimulation/pvalue05/"
 f <- list()
