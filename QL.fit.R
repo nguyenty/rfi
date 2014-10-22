@@ -94,7 +94,7 @@ res<-list(dev=dev,means=means,parms=parms, parms.se = parms.se)
 ### Analysis under quasi-Poisson model, if chosen
 if(Model=="Poisson") res<-PoisDev(counts,design,log.offset,print.progress)
 
-if(jj==1){ means<-res$means; parms<-res$parms, parms.se <- res$parms.se}
+if(jj==1){ means<-res$means; parms<-res$parms; parms.se <- res$parms.se}
 deviance.list[[jj]]<-res$dev
 }
 
