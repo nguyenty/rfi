@@ -94,23 +94,23 @@ sel_criteria <- function(result){
   dat <- result$P.values[[3]][,colnames(result$P.values[[3]])]
   # Crames Von Miser statistics
   dat <- as.matrix(dat)
-  cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
-                                        diff(c(0,g_cdf(z)$x.knots))))
-  # Kolmogorow Smirnov statistics 
-  ks <- apply(dat, 2, function(z)max((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2))
-  
-  # Anderson-Darling statistics
-  ad <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2/
-                                       g_cdf(z)$x.knots*(1-g_cdf(z)$x.knots)*
-                                       diff(c(0,g_cdf(z)$x.knots))))
-  # Proportion of pvalue less than 0.05
+#   cvm <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2 *
+#                                         diff(c(0,g_cdf(z)$x.knots))))
+#   # Kolmogorow Smirnov statistics 
+#   ks <- apply(dat, 2, function(z)max((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2))
+#   
+#   # Anderson-Darling statistics
+#   ad <- apply(dat, 2, function(z)sum((g_cdf(z)$F.knots - g_cdf(z)$x.knots)^2/
+#                                        g_cdf(z)$x.knots*(1-g_cdf(z)$x.knots)*
+#                                        diff(c(0,g_cdf(z)$x.knots))))
+#   # Proportion of pvalue less than 0.05
   pvalue_05 <- apply(dat<=0.05, 2, sum)
   
-  out <- data.frame(pvalue05 = order(pvalue_05),
-                    ad = order(ad),
-                    cvm = order(cvm),
-                    ks = order(ks))
-  
+  out <- data.frame(pvalue05 = order(pvalue_05))#,
+#                     ad = order(ad),
+#                     cvm = order(cvm),
+#                     ks = order(ks))
+#   
   return(out)
 }
 
@@ -271,7 +271,7 @@ out_pairedend_logcbc <-  data.frame(Date=as.Date(character()),
                                    User=character(), 
                                    stringsAsFactors=FALSE) 
 
-for(i in 4){ # i <- 4 pvalue05
+for(i in 1){ # i <- 4 pvalue05
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
@@ -344,3 +344,10 @@ full_model <- model.matrix(~Line + Concb +  + RINa +
                              Block )
 
 out_model <- fit_model(full_model, model_th, 4)
+
+## Fit model 1 alone #######
+model_th <- 1
+full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
+out_model <- fit_model(full_model, model_th, 1)

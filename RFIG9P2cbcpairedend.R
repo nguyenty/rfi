@@ -305,3 +305,12 @@ for(i in 4){ # i <- 1
 }
 
 write.csv(out_pairedend_cbc, "out_pairedend_cbc.csv", row.names = F)
+
+
+
+model_th <- 7
+full_model <- model.matrix(~Line + Concb +  + RINa + 
+                             neut + lymp + lmono  + lbaso + 
+                             Block )
+
+out_model <- fit_model(full_model, model_th, 1)
