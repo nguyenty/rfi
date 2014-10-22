@@ -94,7 +94,7 @@ res<-list(dev=dev,means=means,parms=parms, parms.se = parms.se)
 ### Analysis under quasi-Poisson model, if chosen
 if(Model=="Poisson") res<-PoisDev(counts,design,log.offset,print.progress)
 
-if(jj==1){ means<-res$means; parms<-res$parms}
+if(jj==1){ means<-res$means; parms<-res$parms, parms.se <- res$parms.se}
 deviance.list[[jj]]<-res$dev
 }
 
@@ -127,7 +127,7 @@ if(Model=="Poisson") phi.hat.pearson<-(means-counts)^2/means
 phi.hat.pearson[means==0]<-0
 phi.hat.pearson<-rowSums(phi.hat.pearson)/den.df
 
-if(Model=="Poisson")return(list(LRT=LRT,phi.hat.dev=phi.hat.dev,phi.hat.pearson=phi.hat.pearson,mn.cnt=rowMeans(counts),den.df=den.df,num.df=num.df,Model=Model,fitted.values=means,coefficients=parms))
-if(Model=="NegBin")return(list(LRT=LRT,phi.hat.dev=phi.hat.dev,phi.hat.pearson=phi.hat.pearson,mn.cnt=rowMeans(counts),den.df=den.df,num.df=num.df,Model=Model,NB.disp=nb.disp,fitted.values=means,coefficients=parms))
+if(Model=="Poisson")return(list(LRT=LRT,phi.hat.dev=phi.hat.dev,phi.hat.pearson=phi.hat.pearson,mn.cnt=rowMeans(counts),den.df=den.df,num.df=num.df,Model=Model,fitted.values=means,coefficients=parms, coefficients.se = parms.se))
+if(Model=="NegBin")return(list(LRT=LRT,phi.hat.dev=phi.hat.dev,phi.hat.pearson=phi.hat.pearson,mn.cnt=rowMeans(counts),den.df=den.df,num.df=num.df,Model=Model,NB.disp=nb.disp,fitted.values=means,coefficients=parms, coefficients.se = parms.se))
 }
 
