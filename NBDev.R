@@ -6,7 +6,7 @@ SAT.LIKE<-function(counts,disp){
 means<-counts
 like<-disp*log(disp/(disp+means))
 like[counts!=0]<-like[counts!=0]+counts[counts!=0]*log(means[counts!=0]/(disp+means[counts!=0]))
--sum(like)
+-sum(like) 
 }
 
 ### Function used to evaluate quasi-negative binomial likelihood at current parameter estimates
@@ -46,7 +46,7 @@ est.offset=est.offset, hessian = TRUE)
 ### Save optimized means (used in Pearson's dispersion estimator)
 means[i,]<-as.vector(exp(design%*%opt$par)*est.offset)
 parms[i,]<-opt$par
-parms.se[i,] <- sqrt(diag(solve(-opt$hessian)))
+parms.se[i,] <- sqrt(diag(solve(opt$hessian)))
 
 ### Save deviance (used to compute LRT for comparing models and also deviance dispersion estimator)
 deviance.vector[i]<-2*(opt$value-SAT.LIKE(counts[i,],1/nb.disp[i])) ##SAT.LIKE and opt$value are !negative! likelihoods
