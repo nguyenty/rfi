@@ -27,7 +27,7 @@ if(is.null(log.offset)) log.offset<-rep(0,ncol(counts));
 est.offset<-exp(log.offset)
 
 deviance.vector<-rep(NA,nrow(counts)); means<-matrix(NA,nrow(counts),ncol(counts));
-parms<-matrix(NA,nrow(counts),ncol(design))
+parms<-parms.se <- matrix(NA,nrow(counts),ncol(design))
 
 ### For each gene and given design matrix, find model parameters (for mean structure) that optimize quasi-likelihood
 for(i in 1:nrow(counts)){
@@ -41,17 +41,18 @@ if(ncol(design)==1)init.parms<-lm(log(counts[i,]+1)~1,offset=log(est.offset))$co
 ### Find optimum parameter estimates
 opt<-optim(init.parms,fn=LIKE,gr=GRAD,method="BFGS",design=design,
 control=list(reltol=1e-25,maxit=1000),counts=counts[i,],disp=1/nb.disp[i],
-est.offset=est.offset)
+est.offset=est.offset, hessian = TRUE)
 
 ### Save optimized means (used in Pearson's dispersion estimator)
 means[i,]<-as.vector(exp(design%*%opt$par)*est.offset)
 parms[i,]<-opt$par
+parms.se[i,] <- sqrt(diag(solve(-opt$hessian)))
 
 ### Save deviance (used to compute LRT for comparing models and also deviance dispersion estimator)
 deviance.vector[i]<-2*(opt$value-SAT.LIKE(counts[i,],1/nb.disp[i])) ##SAT.LIKE and opt$value are !negative! likelihoods
 }
 
-return(list(dev=deviance.vector,means=means,parms=parms))
+return(list(dev=deviance.vector,means=means,parms=parms, parms.se = parms.se))
 }
 
 

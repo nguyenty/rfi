@@ -81,10 +81,11 @@ if(any(nb.disp>0)) res<-NBDev(counts[nb.disp>0,],design,log.offset,nb.disp[nb.di
 
 ### If present, analyze genes with zero as dispersion parameter using quasi-Poisson model
 if(any(nb.disp==0)){ res2<-PoisDev(counts[nb.disp==0,],design,log.offset,print.progress)
-means<-rep(NA,nrow(counts));dev<-means;parms<-matrix(NA,nrow(counts),ncol(design))
+means<-rep(NA,nrow(counts));dev<-means;parms<-matrix(NA,nrow(counts),ncol(design)); parms.se<-matrix(NA,nrow(counts),ncol(design))
 means[nb.disp==0]<-res2$means;dev[nb.disp==0]<-res2$dev; parms[nb.disp==0,]<-res2$parms
-if(any(nb.disp>0)){ means[nb.disp>0]<-res$means; dev[nb.disp>0]<-res$dev; parms[nb.disp>0,]<-res$parms}
-res<-list(dev=dev,means=means,parms=parms)
+parms.se[nb.disp==0,]<-res2$parms.se
+if(any(nb.disp>0)){ means[nb.disp>0]<-res$means; dev[nb.disp>0]<-res$dev; parms[nb.disp>0,]<-res$parms; parms.se[nb.disp>0,]<-res$parms.se}
+res<-list(dev=dev,means=means,parms=parms, parms.se = parms.se)
 }
 
 
