@@ -32,7 +32,7 @@ n<-ncol(counts)
 		deviance<-rep(NA,nrow(counts)); means<-matrix(NA,nrow(counts),ncol(counts)); parms<-matrix(NA,nrow(counts),ncol(design))
 
 		### For each gene and given design matrix, fit GLM to find model parameters (for mean structure) that optimize quasi-likelihood
-		parms.se <- parms
+		
     for(i in 1:nrow(counts)){
 			### If wanted, provide running progress update (eventually once every 5000 genes) 
 			if(i%in%c(2,10,100,500,1000,2500,4000,5000*(1:200))&print.progress) print(paste("Analyzing Gene #",i))
@@ -43,12 +43,12 @@ n<-ncol(counts)
 			### Save optimized means (used in Pearson's dispersion estimator)
 			means[i,]<-res$fitted.values
 			parms[i,]<-res$coefficients
-			parms.se[i,] <- summary(res)$coef[,"Std. Error"]
+			
 
 			### Save deviance (used to compute LRT for comparing models and also deviance dispersion estimator)
 			deviance[i]<-res$deviance
 		}
 	}
 
-return(list(dev=deviance, means=means, parms=parms, parms.se = parms.se))
+return(list(dev=deviance, means=means, parms=parms))
 }
