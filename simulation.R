@@ -389,14 +389,53 @@ rt.est
 best.model
 
 ## combine all results together ######
-nrep <- 10
+nrep <- 44
 res.all <- list()
 
+nrep
+fdr.sim <- list()
+rt.sim <- list()
+best.model.sim <- NULL
 for( i in 1:nrep){
-  path <- paste0("res.out_", i, ".RData")
+  path <- paste0("res.outnew_", i, ".RData")
   load(path)
-  res.all[[i]] <- res.out
+  res.all[[i]] <- res.outnew
+  best.model.sim[i] <- which.max(res.outnew$rt)
+  rt.sim[[i]] <- res.outnew$rt
+  fdr.sim[[i]] <- res.outnew$fdr
 }
 
-str(res.all)
-res.all[[5]]
+rt.sim[[1]]
+best.model.sim
+str(res.all[[8]])
+rt.best.sim <- NULL
+fdr.best.sim <- NULL
+for(i in 1:nrep){
+  fdr.best.sim[i] <- fdr.sim[[i]][which.max(rt.sim[[i]])]
+  rt.best.sim[i] <- max(rt.sim[[i]])
+}
+fdr.best.sim
+fdr.mean <- mean(fdr.best.sim)
+fdr.mean
+fdr.se <- sd(fdr.best.sim)/sqrt(nrep)
+fdr.se
+rt.best.sim
+
+
+### run the model with only Line effect#####
+st.line <-rt.line <- fdr.line <- NULL
+for(i in 1:44){ # i <- 1
+  path <- paste0("sim_outputnew_", i, ".RData")
+  load(path)
+  model_th <- 100+i# i <- 1
+  full_model <- model.matrix(~Line)
+  out_model <- fit_model(full_model, model_th, 1, sim_outputnew)
+  rt.line[i] <- out_model$rt
+  fdr.line[i] <- out_model$fdr
+  st.line[i] <- rt.line[i] - round(rt.line[i]*fdr.line[i])
+}
+
+rt.line
+fdr.line
+st.line
+
