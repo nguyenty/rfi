@@ -114,7 +114,7 @@ for(j in 1:nrow(prefit$coefficients)){
 }
 dim(ses)
 
-which(apply(ses, 1, sum)==0)
+del.gene <- which(apply(ses, 1, sum)==0)
 
 
 j <- 2647 # 7299, 9257, 11574
@@ -125,3 +125,24 @@ str(new.beta[[1]])
 dim(full_model)
 colnames(full_model)
 full_model[, -c(1, 2)]
+#### fit QL.fit model excluding those genes with non inverse Hessian Matrix#####
+
+## first: obtain estimate of sigma_k for each sample, k = 1, 23#####
+
+s0b0 <- function(x){
+  s0 <- x[1]; b0 <- x[2]
+  l <- sum(-log(svec+s0) - (bvec - b0)^2/(svec+s0))
+  -l
+}
+g.s0b0 <- function(x){
+  s0 <- x[1]; b0 <- x[2]
+  c(sum(1/(svec + s0)+1/(svec + s0)^2*(bvec-b0)^2), 
+  sum(2/(svec + s0)^2*(bvec-b0)^2))
+}
+# k <- 1 # s0 <- 1; b0 <- 0
+bvec <- fit$coef[-del.gene, 1]
+svec <- ses[-del.gene,1]
+length(bvec)
+length(svec)
+optim(c(1, 0), s0b0, g.s0b0, method = "BFGS")
+?optim
