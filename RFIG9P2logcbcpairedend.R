@@ -80,8 +80,9 @@ attach(covset)
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
-dim(counts)
-str(counts)
+# counts <- counts[-c(2647, 7299, 9257, 11574), ]
+# dim(counts)
+# str(counts)
 
 log.offset <- log(apply(counts, 2, quantile, .75))
 g_cdf <- function(z){
@@ -339,14 +340,14 @@ intersect(ind1, ind2)
 ### fit model 7 alone #########
 
 model_th <- 7
-full_model <- model.matrix(~Line + Concb +  + RINa + 
+full_model <- model.matrix(~Line + Concb + RINa + 
                              lneut + llymp + lmono  + lbaso + 
                              Block )
 
 out_model <- fit_model(full_model, model_th, 4)
 
 ## Fit model 1 alone #######
-model_th <- 1
+model_th <- 1111
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                              lneut + llymp + lmono + leosi + lbaso + 
                              Block + Blockorder)
