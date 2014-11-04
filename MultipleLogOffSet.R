@@ -72,6 +72,13 @@ counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
 load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_fit.RData")
 load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
 
+
+load("new.beta.RData")
+
+
+
+
+
 dim(fit$coef)
 #dl2: design MATRIX; b: fit coefficients, w: fit NB.disp
 f <- function(m) class(try(solve(m),silent=T))=="matrix"
@@ -116,33 +123,65 @@ dim(ses)
 
 del.gene <- which(apply(ses, 1, sum)==0)
 
-
-j <- 2647 # 7299, 9257, 11574
-j <- 1
-se.b1(prefit$coefficients[j,],prefit$NB.disp[j],full_model)
- load("new.beta.RData")
-str(new.beta[[1]])
-dim(full_model)
-colnames(full_model)
-full_model[, -c(1, 2)]
+bvec <- fit$coef[-del.gene, 3]
+svec <- ses[-del.gene,3]^2
+length(bvec)
+length(svec)
 #### fit QL.fit model excluding those genes with non inverse Hessian Matrix#####
 
 ## first: obtain estimate of sigma_k for each sample, k = 1, 23#####
 
 s0b0 <- function(x){
   s0 <- x[1]; b0 <- x[2]
-  l <- sum(-log(svec+s0) - (bvec - b0)^2/(svec+s0))
+  l <- sum(-log(svec+s0) - (bvec - b0)^2/(svec+s0))/2
   -l
 }
 g.s0b0 <- function(x){
   s0 <- x[1]; b0 <- x[2]
-  c(sum(1/(svec + s0)+1/(svec + s0)^2*(bvec-b0)^2), 
-  sum(2/(svec + s0)^2*(bvec-b0)^2))
+  c(sum(-.5/(svec + s0)+.5/(svec + s0)^2*(bvec-b0)^2), 
+  sum(-1/(svec + s0)^2*(bvec-b0)))
 }
 # k <- 1 # s0 <- 1; b0 <- 0
-bvec <- fit$coef[-del.gene, 1]
-svec <- ses[-del.gene,1]
-length(bvec)
-length(svec)
-optim(c(1, 0), s0b0, g.s0b0, method = "BFGS")
-?optim
+
+optimx(c(1, 0), s0b0, g.s0b0, method = "BFGS")
+# 
+# optimx(c(1, 0), s0b0)
+# install.packages("optimx")
+# library("optimx")
+
+
+
+
+load("new.beta.RData")
+str(new.beta)
+
+bvec <- matrix(0, nrow = length(new.beta[[1]]), ncol = length(new.beta))
+
+for(i in 1:length(new.beta)){
+  bvec[,i] <- new.beta[[i]]
+}
+
+model_th <- 11111 # test for Emperial Bayes method#####
+full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
+                             lneut + llymp + lmono + leosi + lbaso + 
+                             Block + Blockorder)
+new.offset <- t(full_model[, -2]%*% t(bvec[,-2]))
+dim(new.offset)
+
+source("quasiseq shrinkage functions2.R")
+
+
+design.list <- vector("list", 2)
+design.list[[1]] <- model.matrix(~Line)
+design.list[[2]] <- rep(1, 31)
+
+
+log.offset <- log(apply(counts, 2, quantile, .75))
+fit <- myQL.fit(counts, design.list, # dim(counts)
+              log.offset = log.offset, betavec = new.offset, print.progress=TRUE,
+              Model = "NegBin", method = "optim")
+
+result<- QL.results(fit, Plot = FALSE)
+str(result)
+hist(result$P.values[[3]])
+sum(result$Q.values[[3]]<=0.05)

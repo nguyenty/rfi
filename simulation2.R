@@ -17,12 +17,15 @@ source("QL.results.R")
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
+row.names(scount) <- scount[,1]
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
                     which(scount[,1] %in%"ENSSSCG00000014725")),]
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
-
+# d <- read.csv("counts_12280.csv")
+# str(d)
+# str(counts)
 ###List of models function ####
 covset <- read.table("covset.txt")
 attach(covset)
@@ -409,6 +412,7 @@ for( i in 1:nrep){
 rt.sim[[1]]
 best.model.sim
 str(res.all[[8]])
+
 rt.best.sim <- NULL
 fdr.best.sim <- NULL
 for(i in 1:nrep){
@@ -421,8 +425,8 @@ fdr.mean
 fdr.se <- sd(fdr.best.sim)/sqrt(nrep)
 fdr.se
 rt.best.sim
-
-
+st.best.sim <- rt.best.sim*(1-fdr.best.sim)
+st.best.sim
 ### run the model with only Line effect#####
 st.line <-rt.line <- fdr.line <- NULL
 for(i in 1:44){ # i <- 1
