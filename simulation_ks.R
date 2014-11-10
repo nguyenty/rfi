@@ -186,15 +186,12 @@ list_model <- function(full_model){
 fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <- 1
   y <- sim_output$y
   s <- sim_output$s
-  
   log.offset <- log(apply(y, 2, quantile, 0.75))
-  
-  
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
   fit2 <- QL.fit(y, design.list, test.mat, # dim(counts)
-                log.offset = log.offset, print.progress=TRUE,
+                log.offset = log.offset, print.progress=FALSE,
                 Model = "NegBin")
   result2<- QL.results(fit2, Plot = FALSE)
   out2 <- table(s%in%degene, result2$Q.values[[3]][,"Line"]<.05) # mean(s%in%degene) mean(result2$Q.values[[3]][,"Line"]<.05)
@@ -203,40 +200,10 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
     vt <- out2[1,2]
     fdr <- vt/rt  
   } else{  rt <- 0; fdr <- 0
-    
   }
- 
-#   out
-#   
-  
-  res_sel <- sel_criteria(result2)
-  k <- nrow(test.mat)
-  name_model <- NULL 
-  for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
-  model_dir <- paste(resultdir,"/", colnames(res_sel)[criteria], "/Model",model_th,name_model, sep ="")
-#   dir.create(model_dir, showWarnings = FALSE)
-#   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-#   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
-#   for(i in 1:(nrow(test.mat))){
-#     postscript(paste(model_dir,"/Model", 
-#                      model_th, row.names(test.mat)[i],".eps", sep =""))
-#     hist(result$P.values[[3]][,i],  # i <- 8
-#          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
-#     box()
-#     dev.off()
-#     
-#     pdf(paste(model_dir,"/Model", 
-#               model_th, row.names(test.mat)[i],".pdf", sep =""))
-#     hist(result$P.values[[3]][,i], 
-#          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
-#     box()
-#     dev.off()
-#   }
-  print(paste("Model", model_th, sep = " "))
-  
-  return(list(res_sel = res_sel, fdr = fdr, rt = rt))
+ res_sel <- sel_criteria(result2)
+ print(paste("Model", model_th, sep = " "))
+ return(list(res_sel = res_sel, fdr = fdr, rt = rt))
 }
 
 
@@ -250,61 +217,20 @@ for(nrep in 84:85) # nrep <- 1
   #vt.model <- NULL
   rt.model <- NULL
   fdr.model <- NULL
-J <- dim(used_beta)[1]
-#used_gene is the list of indexes of genes from the original data 12280 
-size <- 200
-set.seed(nrep)
-s <- sample( dim(used_beta)[1], size = size)
-s <- s[order(s)]
-s_mu <- mu[s,]
-s_omega <- used_omega[s]
-s_degene <- intersect(degene, s) 
-#length(s_degene)/length(s)
-
-##Sim counts data
-y <- array(0, dim = c(size,31))
-
-# nrep <- 100;size <- 5000 ; j <-5000; k <- 1
-
-for(j in 1:size){ # j <- 1; k <- 1
-  repeat{
-    for(k in 1:31){
-      #set.seed((32*nrep+k)*size + j)
-      y[j,k]  <- rnbinom(n=1, size=1/s_omega[j], mu=s_mu[j,k])
-    }
-    if (mean(y[j,])>8& sum(y[j,]>0)>3) break
-  }
-}
-
-# nrep <- 1
-sim_outputnew <- list(used_gene = used_gene, used_omega = used_omega, 
-                   used_count = used_count, 
-                   degene_original = degene, 
-                   s = s,  s_degene = s_degene, 
-                   y = y, nrep = nrep)
-save(sim_outputnew, file = paste0("sim_outputnew_", nrep, ".RData"))
+load(file = paste0("sim_outputnew_", nrep, ".RData"))
 
 
 
-list_cov_out1 <-  data.frame(Date=as.Date(character()),
+list_cov_out1_ks <-  data.frame(Date=as.Date(character()),
                                  File=character(), 
                                  User=character(), 
                                  stringsAsFactors=FALSE) 
 
-for(i in 1){ # i <- 1
+for(i in 4){ # i <- 1
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
                                Block + Blockorder)
-  colnames(list_model(full_model)[[1]][[2]])
-  list_model(full_model)[[1]][[2]]
-  full_model2 <- model.matrix(~Line+ Diet + RFI + Concb + RINb + Conca + RINa + 
-                                + lneut+ llymp + lmono + leosi + lbaso + 
-                               Block)
-  all(list_model(full_model)[[1]][[15]]==full_model2)
-colnames(full_model2)
-colnames()
-  list_model(full_model)[[2]]
   #colnames(full_model)
   repeat{
     pm1 <- proc.time()
@@ -324,7 +250,7 @@ colnames()
     res <- data.frame(criteria = colnames(ms_val)[i], 
                       model = model_th, 
                       cov_del = rownames(cov_set)[ cov_del])
-    list_cov_out1 <- rbind(list_cov_out1, res)
+    list_cov_out1_ks <- rbind(list_cov_out1_ks, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
@@ -347,14 +273,12 @@ colnames()
   best.model.est[[nrep]] <- test.mat.model[[which.max(rt.model)]]
   fdr.est[[nrep]] <- fdr.model
   rt.est[[nrep]] <- rt.model
-res.outnew <- list(best.model.est = best.model.est[[nrep]], 
+res.outnew_ks <- list(best.model.est = best.model.est[[nrep]], 
                 fdr.est = fdr.est[[nrep]],
                 rt.est = rt.est[[nrep ]])
-save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
- write.csv(list_cov_out1, file = paste0("list_cov_out1new_",nrep,  ".csv"), row.names = FALSE)
- #write.csv(list_cov_out1, file = paste0("list_cov_out2_",nrep,  ".csv"), row.names = TRUE)
-#  write.csv(best.model, file = paste0("best_model1_", nrep, ".csv"), row.names = TRUE)
-#  write.csv(best.model, file = paste0("best_model2_", nrep, ".csv"), row.names = TRUE)
+save(res.outnew_ks, file = paste0("res.outnew_ks_", nrep, ".RData"))
+ write.csv(list_cov_out1_ks, file = paste0("list_cov_out1_ks_",nrep,  ".csv"), row.names = FALSE)
+
 }
 
 # 
