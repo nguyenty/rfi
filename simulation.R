@@ -41,44 +41,49 @@ load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RIN
 # in the paper of Pounds et al. 2012, EBT, with the estimation of 
 # density obtained from the paper by Korbinian Strimmer 2008
 # 
-
-pval.hist.grenander <- function(p.value){
-  grenander.out <- grenander(ecdf(p.value))
-  p.brks <- c(0, grenander.out$x.knots)
-  b.edf <- c(0, grenander.out$F.knots)
-  p.diffs <- diff(p.brks)
-  h.cdf <- approx(p.brks, b.edf, xout = p.value)$y  # get the histogram-based CDF estimates from each p-value
-  p.hist <- exp(log(diff(b.edf))-log(diff(p.brks))) # get the hight for each histogram bar
-  pi0.hat <- min(p.hist)                            # get the pi0 estimate from histogram bar
-  h.ebp <- approx(p.brks, pi0.hat/c(p.hist, p.hist[length(p.hist)]), xout = p.value)$y # get the conservative EBP interpolation 
-  h.fdr <- exp(log(pi0.hat) + log(p.value) - log(h.cdf))                                     # Get the histogram based FDR estimate
-  h.ebp[p.value==0] <- 0
-  h.fdr[p.value==0] <- 0
-  return(list( p.value = p.value,          # input p-value,
-               h.cdf = h.cdf,              # the histogram Grenander based cdf estimate
-               h.fdr = h.fdr,              # the histogram Grenander based FDR
-               h.ebp = h.ebp,              # the histogram Grenander based EBP
-               p.brks = p.brks,            # the p-value break-points of the histogram
-               p.hist = p.hist,            # the heights of each histogram bar
-               edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
-               pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
-}
-
-pvalue_line <- result$P.values[[3]][,"Line"]
-gre_out <- pval.hist.grenander(pvalue_line)
-ebp_line <- gre_out$h.ebp
-hist(ebp_line, nclass = 100)
-#mean((ebp_line <0.5))
+# 
+# pval.hist.grenander <- function(p.value){
+#   grenander.out <- grenander(ecdf(p.value))
+#   p.brks <- c(0, grenander.out$x.knots)
+#   b.edf <- c(0, grenander.out$F.knots)
+#   p.diffs <- diff(p.brks)
+#   h.cdf <- approx(p.brks, b.edf, xout = p.value)$y  # get the histogram-based CDF estimates from each p-value
+#   p.hist <- exp(log(diff(b.edf))-log(diff(p.brks))) # get the hight for each histogram bar
+#   pi0.hat <- min(p.hist)                            # get the pi0 estimate from histogram bar
+#   h.ebp <- approx(p.brks, pi0.hat/c(p.hist, p.hist[length(p.hist)]), xout = p.value)$y # get the conservative EBP interpolation 
+#   h.fdr <- exp(log(pi0.hat) + log(p.value) - log(h.cdf))                                     # Get the histogram based FDR estimate
+#   h.ebp[p.value==0] <- 0
+#   h.fdr[p.value==0] <- 0
+#   return(list( p.value = p.value,          # input p-value,
+#                h.cdf = h.cdf,              # the histogram Grenander based cdf estimate
+#                h.fdr = h.fdr,              # the histogram Grenander based FDR
+#                h.ebp = h.ebp,              # the histogram Grenander based EBP
+#                p.brks = p.brks,            # the p-value break-points of the histogram
+#                p.hist = p.hist,            # the heights of each histogram bar
+#                edf.brks = b.edf,           # the breaks points in the EDF of the histogram estimator
+#                pi0.hat = pi0.hat))         # the histogram Grenander based estimate of the proportion of tests with a true null hypothesis
+# }
+# 
+# # pvalue_line <- result$P.values[[3]][,"Line"]
+# # gre_out <- pval.hist.grenander(pvalue_line)
+# # ebp_line <- gre_out$h.ebp
+# # hist(ebp_line, nclass = 100)
+# #mean((ebp_line <0.5))
 full_model <- model.matrix(~Line + Concb + RINa + 
                              lneut + llymp + lmono + 
                              lbaso + Block)
 coef_beta <- fit$coef 
-coef_beta[,2] <- fit$coef[,2]*(ebp_line<0.5)
+q <- quantile(result$Q.values[[3]][,"Line"], prob = result$m0[3,1]/dim(coef_beta)[1])
+coef_beta[,2] <- fit$coef[,2]*(result$Q.values[[3]][,"Line"]<q)
 
 
 cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
   cor(fit$fitted.values[i,], counts[i,]))
-set.seed(1)
+
+
+
+
+
 used_gene <- which(cor_fit_count >.8)
 used_beta <- coef_beta[used_gene,]
 # length(used_gene)
@@ -86,7 +91,10 @@ used_beta <- coef_beta[used_gene,]
 #mean(coef_beta[,2]!=0)
 used_omega <- fit$NB.disp[used_gene]
 used_count <- counts[used_gene,]
-degene <- which(ebp_line[used_gene]<0.5)
+degene <- which(result$Q.values[[3]][used_gene,"Line"] <= q)
+#length(degene)
+
+
 mu <- fit$fitted[used_gene,]
 
 #mean(used_beta[,2] != 0)
@@ -282,7 +290,8 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 
 fdr.est <- rt.est <- best.model.est <- list()
 
-for(nrep in 5:50) # nrep <- 1
+## simulation replication #####
+for(nrep in 84:85) # nrep <- 1
 {
   test.mat.model <- list()
   #vt.model <- NULL
@@ -291,6 +300,7 @@ for(nrep in 5:50) # nrep <- 1
 J <- dim(used_beta)[1]
 #used_gene is the list of indexes of genes from the original data 12280 
 size <- 5000
+set.seed(nrep)
 s <- sample( dim(used_beta)[1], size = size)
 s <- s[order(s)]
 s_mu <- mu[s,]
@@ -301,11 +311,12 @@ s_degene <- intersect(degene, s)
 ##Sim counts data
 y <- array(0, dim = c(size,31))
 
+# nrep <- 100;size <- 5000 ; j <-5000; k <- 1
 
-
-for(j in 1:size){
+for(j in 1:size){ # j <- 1; k <- 1
   repeat{
     for(k in 1:31){
+      #set.seed((32*nrep+k)*size + j)
       y[j,k]  <- rnbinom(n=1, size=1/s_omega[j], mu=s_mu[j,k])
     }
     if (mean(y[j,])>8& sum(y[j,]>0)>3) break
@@ -384,60 +395,60 @@ save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
 #  write.csv(best.model, file = paste0("best_model2_", nrep, ".csv"), row.names = TRUE)
 }
 
-
-fdr.est
-rt.est
-best.model
-
-## combine all results together ######
-nrep <- 44
-res.all <- list()
-
-nrep
-fdr.sim <- list()
-rt.sim <- list()
-best.model.sim <- NULL
-for( i in 1:nrep){
-  path <- paste0("res.outnew_", i, ".RData")
-  load(path)
-  res.all[[i]] <- res.outnew
-  best.model.sim[i] <- which.max(res.outnew$rt)
-  rt.sim[[i]] <- res.outnew$rt
-  fdr.sim[[i]] <- res.outnew$fdr
-}
-
-rt.sim[[1]]
-best.model.sim
-str(res.all[[8]])
-rt.best.sim <- NULL
-fdr.best.sim <- NULL
-for(i in 1:nrep){
-  fdr.best.sim[i] <- fdr.sim[[i]][which.max(rt.sim[[i]])]
-  rt.best.sim[i] <- max(rt.sim[[i]])
-}
-fdr.best.sim
-fdr.mean <- mean(fdr.best.sim)
-fdr.mean
-fdr.se <- sd(fdr.best.sim)/sqrt(nrep)
-fdr.se
-rt.best.sim
-
-
-### run the model with only Line effect#####
-st.line <-rt.line <- fdr.line <- NULL
-for(i in 1:44){ # i <- 1
-  path <- paste0("sim_outputnew_", i, ".RData")
-  load(path)
-  model_th <- 100+i# i <- 1
-  full_model <- model.matrix(~Line)
-  out_model <- fit_model(full_model, model_th, 1, sim_outputnew)
-  rt.line[i] <- out_model$rt
-  fdr.line[i] <- out_model$fdr
-  st.line[i] <- rt.line[i] - round(rt.line[i]*fdr.line[i])
-}
-sim.line <- list(rt.line = rt.line, fdr.line = fdr.line, st.line = st.line)
-save(sim.line, "sim.line.RData")
-rt.line
-fdr.line
-st.line
-
+# 
+# fdr.est
+# rt.est
+# best.model
+# 
+# ## combine all results together ######
+# nrep <- 44
+# res.all <- list()
+# 
+# nrep
+# fdr.sim <- list()
+# rt.sim <- list()
+# best.model.sim <- NULL
+# for( i in 1:nrep){
+#   path <- paste0("res.outnew_", i, ".RData")
+#   load(path)
+#   res.all[[i]] <- res.outnew
+#   best.model.sim[i] <- which.max(res.outnew$rt)
+#   rt.sim[[i]] <- res.outnew$rt
+#   fdr.sim[[i]] <- res.outnew$fdr
+# }
+# 
+# rt.sim[[1]]
+# best.model.sim
+# str(res.all[[8]])
+# rt.best.sim <- NULL
+# fdr.best.sim <- NULL
+# for(i in 1:nrep){
+#   fdr.best.sim[i] <- fdr.sim[[i]][which.max(rt.sim[[i]])]
+#   rt.best.sim[i] <- max(rt.sim[[i]])
+# }
+# fdr.best.sim
+# fdr.mean <- mean(fdr.best.sim)
+# fdr.mean
+# fdr.se <- sd(fdr.best.sim)/sqrt(nrep)
+# fdr.se
+# rt.best.sim
+# 
+# 
+# ### run the model with only Line effect#####
+# st.line <-rt.line <- fdr.line <- NULL
+# for(i in 1:44){ # i <- 1
+#   path <- paste0("sim_outputnew_", i, ".RData")
+#   load(path)
+#   model_th <- 100+i# i <- 1
+#   full_model <- model.matrix(~Line)
+#   out_model <- fit_model(full_model, model_th, 1, sim_outputnew)
+#   rt.line[i] <- out_model$rt
+#   fdr.line[i] <- out_model$fdr
+#   st.line[i] <- rt.line[i] - round(rt.line[i]*fdr.line[i])
+# }
+# sim.line <- list(rt.line = rt.line, fdr.line = fdr.line, st.line = st.line)
+# save(sim.line, "sim.line.RData")
+# rt.line
+# fdr.line
+# st.line
+# 
