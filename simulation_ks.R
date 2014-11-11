@@ -14,7 +14,7 @@ source("PoisDev.R")
 source("QL.results.R")
 
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
-resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation"
+#resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation"
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
 scount <- scount[-c(which(scount[,1] %in%"ENSSSCG00000007978"),
@@ -30,11 +30,11 @@ Blockorder <- as.factor(Blockorder)
 Block <- as.factor(Block)
 Line <- as.factor(Line)
 Diet <- as.factor(Diet)
-# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
-
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+# 
+# load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+# load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
 
 full_model <- model.matrix(~Line + Concb + RINa + 
                              lneut + llymp + lmono + 
@@ -211,10 +211,10 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 fdr.est <- rt.est <- best.model.est <- list()
 
 ## simulation replication #####
-for(nrep in 84:85) # nrep <- 1
+for(nrep in 4) # nrep <- 4
 {
   test.mat.model <- list()
-  #vt.model <- NULL
+  vt.model <- NULL
   rt.model <- NULL
   fdr.model <- NULL
 load(file = paste0("sim_outputnew_", nrep, ".RData"))

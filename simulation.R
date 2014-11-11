@@ -245,7 +245,7 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 fdr.est <- rt.est <- best.model.est <- list()
 
 ## simulation replication #####
-for(nrep in c(4)) # nrep <- 5
+for(nrep in c(4)) # nrep <- 500
 {
   test.mat.model <- list()
   #vt.model <- NULL
@@ -254,7 +254,7 @@ for(nrep in c(4)) # nrep <- 5
 J <- dim(used_beta)[1]
 #used_gene is the list of indexes of genes from the original data 12280 
 size <- 5000
-set.seed(nrep)
+set.seed(nrep+1)
 s <- sample( dim(used_beta)[1], size = size)
 s <- s[order(s)]
 s_mu <- mu[s,]
@@ -263,6 +263,7 @@ s_degene <- intersect(degene, s)
 #length(s_degene)/length(s)
 
 ##Sim counts data
+
 y <- array(0, dim = c(size,31))
 
 # nrep <- 100;size <- 5000 ; j <-5000; k <- 1
@@ -276,6 +277,8 @@ for(j in 1:size){ # j <- 1; k <- 1
     if (mean(y[j,])>8& sum(y[j,]>0)>3) break
   }
 }
+
+
 
 # nrep <- 1
 sim_outputnew <- list(used_gene = used_gene, used_omega = used_omega, 
