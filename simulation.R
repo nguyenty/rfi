@@ -1,18 +1,17 @@
-require(Matrix)
-
+library(Matrix)
 # source("http://bioconductor.org/biocLite.R")
 # biocLite("edgeR")
 library(edgeR)
-require(reshape)
-require(plyr)
+library(reshape)
+library(plyr)
 library(fields)
 library(reshape)
 library(fdrtool)
-source("QL.fit.R")
+# library(QuasiSeq)
 source("NBDev.R")
 source("PoisDev.R")
+source("QL.fit.R")
 source("QL.results.R")
-
 #resultdir <- '/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpaired'
 #resultdir <- "/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultsimulation"
 resultdir <- "U:/R/RA/Data/RFI-newdata/resultsimulation"
@@ -31,8 +30,8 @@ Blockorder <- as.factor(Blockorder)
 Block <- as.factor(Block)
 Line <- as.factor(Line)
 Diet <- as.factor(Diet)
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue052/Model777.Line.Concb.RINa.neut.lymp.mono.baso.Block/Model777_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue052/Model777.Line.Concb.RINa.neut.lymp.mono.baso.Block/Model777_result.RData")
 # 
 # load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
 # load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
@@ -41,16 +40,17 @@ full_model <- model.matrix(~Line + Concb + RINa +
                              lneut + llymp + lmono + 
                              lbaso + Block)
 coef_beta <- fit$coef 
-q <- quantile(result$Q.values[[3]][,"Line"], prob = result$m0[3,1]/dim(coef_beta)[1])
-coef_beta[,2] <- fit$coef[,2]*(result$Q.values[[3]][,"Line"]<q)
+ee_coef <- sort(result$Q.values[[3]][,"Line"], index.return = T)$ix[(dim(coef_beta)[1]-result$m0[3,1]+1):dim(coef_beta)[1]]
+coef_beta[ee_coef,2] <- 0
 cor_fit_count <- laply(1:dim(coef_beta)[1], function(i)
   cor(fit$fitted.values[i,], counts[i,]))
-used_gene <- which(cor_fit_count >.8)
+used_gene <- which(cor_fit_count >.8)#length(used_gene)
 used_beta <- coef_beta[used_gene,]
 used_omega <- fit$NB.disp[used_gene]
 used_count <- counts[used_gene,]
-degene <- which(result$Q.values[[3]][used_gene,"Line"] <= q)
+degene <- which(used_beta[, 2] !=0) # length(degene)
 mu <- fit$fitted[used_gene,]
+
 
 ###g_cdf#####
 g_cdf <- function(z){
@@ -183,22 +183,30 @@ list_model <- function(full_model){
 #                    degene_original = degene, 
 #                    s=s, s_degene = s_degene, 
 #                    y = y)
-
+load("sim_outputnew_4.RData")
+sim_output <- sim_outputnew
 fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <- 1
   y <- sim_output$y
   s <- sim_output$s
-  
   log.offset <- log(apply(y, 2, quantile, 0.75))
-  
-  
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
   test.mat <- list_out$test.mat
   fit2 <- QL.fit(y, design.list, test.mat, # dim(counts)
-                log.offset = log.offset, print.progress=TRUE,
+                log.offset = log.offset, print.progress=FALSE,
                 Model = "NegBin")
   result2<- QL.results(fit2, Plot = FALSE)
-  out2 <- table(s%in%degene, result2$Q.values[[3]][,"Line"]<.05) # mean(s%in%degene) mean(result2$Q.values[[3]][,"Line"]<.05)
+  
+  fit <- QL.fit(y, design.list, test.mat, # dim(counts)
+                 log.offset = log.offset, print.progress=FALSE,
+                 Model = "NegBin")
+  result<- QL.results(fit, Plot = FALSE)
+  
+  
+  
+  #result2 <- result out2 <- out
+  out <- table(s%in%degene, result$Q.values[[3]][,"Line"]<=.05) # mean(s%in%degene) mean(result2$Q.values[[3]][,"Line"]<.05)
+  out2 <- table(s%in%degene, result2$Q.values[[3]][,"Line"]<=.05) # mean(s%in%degene) mean(result2$Q.values[[3]][,"Line"]<.05)
   if(dim(out2)[2]==2){
     rt <- out2[1,2] + out2[2,2]
     vt <- out2[1,2]
@@ -206,45 +214,40 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
   } else{  rt <- 0; fdr <- 0
     
   }
- 
-#   out
-#   
-  
-  res_sel <- sel_criteria(result2)
+  res_sel <- sel_criteria(result2)  
   k <- nrow(test.mat)
   name_model <- NULL 
   for (i in 1:k) name_model <- paste(name_model, row.names(test.mat)[i], sep =".")
   model_dir <- paste(resultdir,"/", colnames(res_sel)[criteria], "/Model",model_th,name_model, sep ="")
-#   dir.create(model_dir, showWarnings = FALSE)
-#   save(result, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
-#   save(fit, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
-#   for(i in 1:(nrow(test.mat))){
-#     postscript(paste(model_dir,"/Model", 
-#                      model_th, row.names(test.mat)[i],".eps", sep =""))
-#     hist(result$P.values[[3]][,i],  # i <- 8
-#          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
-#     box()
-#     dev.off()
-#     
-#     pdf(paste(model_dir,"/Model", 
-#               model_th, row.names(test.mat)[i],".pdf", sep =""))
-#     hist(result$P.values[[3]][,i], 
-#          main=row.names(test.mat)[i],
-#          xlab = "p-values", col = 'green',nclass=100)
-#     box()
-#     dev.off()
-#   }
+  dir.create(model_dir, showWarnings = FALSE)
+  save(result2, file = paste(model_dir,"/Model",model_th, "_result.RData", sep =""))
+  save(fit2, file = paste(model_dir,"/Model",model_th, "_fit.RData", sep =""))
+  for(i in 1:(nrow(test.mat))){
+    postscript(paste(model_dir,"/Model", 
+                     model_th, row.names(test.mat)[i],".eps", sep =""))
+    hist(result2$P.values[[3]][,i], 
+         main=row.names(test.mat)[i],
+         xlab = "p-values", col = 'green',nclass=100)
+    box()
+    dev.off()
+    
+    pdf(paste(model_dir,"/Model", 
+              model_th, row.names(test.mat)[i],".pdf", sep =""))
+    hist(result2$P.values[[3]][,i], 
+         main=row.names(test.mat)[i],
+         xlab = "p-values", col = 'green',nclass=100)
+    box()
+    dev.off()
+  }
   print(paste("Model", model_th, sep = " "))
-  
   return(list(res_sel = res_sel, fdr = fdr, rt = rt))
 }
-
 
 
 fdr.est <- rt.est <- best.model.est <- list()
 
 ## simulation replication #####
+pm1 <- proc.time()
 for(nrep in c(4)) # nrep <- 500
 {
   test.mat.model <- list()
@@ -253,8 +256,8 @@ for(nrep in c(4)) # nrep <- 500
   fdr.model <- NULL
 J <- dim(used_beta)[1]
 #used_gene is the list of indexes of genes from the original data 12280 
-size <- 5000
-set.seed(nrep+1)
+size <- 8000
+set.seed(nrep)
 s <- sample( dim(used_beta)[1], size = size)
 s <- s[order(s)]
 s_mu <- mu[s,]
@@ -295,15 +298,15 @@ list_cov_out1 <-  data.frame(Date=as.Date(character()),
                                  User=character(), 
                                  stringsAsFactors=FALSE) 
 
-for(i in 1){ # i <- 1
+for(criteria in 1){ # i <- 1
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                               lneut + llymp + lmono + leosi + lbaso + 
+                               neut + lymp + mono + eosi + baso + 
                                Block + Blockorder)
   #colnames(full_model)
   repeat{
-    pm1 <- proc.time()
-    out_model <- fit_model(full_model, model_th, i, sim_outputnew)
+    
+    out_model <- fit_model(full_model, model_th, criteria, sim_outputnew)
     
     #vt.model[model_th] <- out_model$vt
     rt.model[model_th] <- out_model$rt
@@ -313,28 +316,34 @@ for(i in 1){ # i <- 1
     assign(paste("ms_criteria", model_th, sep = "_" ),out_model$res_sel)
     proc.time() -pm1
     ms_val <- get(paste("ms_criteria", model_th, sep = "_" ))
-    cov_del <- ms_val[1,i] # cov_del <- 14; i <- 1
+    cov_del <- ms_val[1,criteria] # cov_del <- 14; i <- 1
     
     cov_set <- list_model(full_model)$test.mat # dim(cov_set)
-    res <- data.frame(criteria = colnames(ms_val)[i], 
+    res <- data.frame(criteria = colnames(ms_val)[criteria], 
                       model = model_th, 
                       cov_del = rownames(cov_set)[ cov_del])
     list_cov_out1 <- rbind(list_cov_out1, res)
     if (cov_del ==1) break
     block_ind <- grep("Block2", colnames(full_model))
     blockorder_ind <-grep("Blockorder", colnames(full_model))
-    
+    indicator <- FALSE
     if(length(block_ind)!=0){
       if(cov_del+1 == cov_set["Block",2])
+      {
         full_model <- full_model[, -c(block_ind, block_ind+1, block_ind+2)]
-    }
-#    colnames(full_model)
-    if(length(blockorder_ind)!=0){
-      if(cov_del+1 == cov_set["Blockorder", 2])
-      full_model <- full_model[, -blockorder_ind]
+        indicator <- TRUE
+      }
     }
     
-    full_model <- full_model[, -(cov_del +1)]
+    if(length(blockorder_ind)!=0){
+      if(cov_del+1 == cov_set["Blockorder", 2])
+      {
+        full_model <- full_model[, -blockorder_ind] 
+        indicator <- TRUE
+      }
+    }
+    
+    if (indicator == FALSE) full_model <- full_model[, -(cov_del +1)] 
     model_th <- model_th +1
   }
 }
@@ -345,13 +354,14 @@ for(i in 1){ # i <- 1
 res.outnew <- list(best.model.est = best.model.est[[nrep]], 
                 fdr.est = fdr.est[[nrep]],
                 rt.est = rt.est[[nrep ]])
-save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
- write.csv(list_cov_out1, file = paste0("list_cov_out1new_",nrep,  ".csv"), row.names = FALSE)
+# save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
+#  write.csv(list_cov_out1, file = paste0("list_cov_out1new_",nrep,  ".csv"), row.names = FALSE)
  #write.csv(list_cov_out1, file = paste0("list_cov_out2_",nrep,  ".csv"), row.names = TRUE)
 #  write.csv(best.model, file = paste0("best_model1_", nrep, ".csv"), row.names = TRUE)
 #  write.csv(best.model, file = paste0("best_model2_", nrep, ".csv"), row.names = TRUE)
 }
 
+proc.time()-pm1
 # 
 # fdr.est
 # rt.est
@@ -409,3 +419,19 @@ save(res.outnew, file = paste0("res.outnew_", nrep, ".RData"))
 # fdr.line
 # st.line
 # 
+# library(AUC)
+# label <- as.factor(as.numeric((s%in%degene)))
+# auc(roc(1-result2$Q.values[[3]][, "Line"], label))
+# auc(roc(1-result$Q.values[[3]], label))
+
+auc_out <- function(test.vector, lab){
+  lab <- as.factor(lab)
+  roc.out <- roc(1-test.vector, lab) # plot(roc.out)
+  roc.ind <- sum(roc.out$fpr<=.05)
+  roc.min <- roc.out$cutoffs[roc.ind]
+  pauc <- auc(roc.out, min =roc.min)
+  return(pauc)
+}
+
+auc_out(result2$Q.values[[3]][, "Line"], label)
+auc_out(result$Q.values[[3]], label)

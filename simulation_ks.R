@@ -210,14 +210,35 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 
 fdr.est <- rt.est <- best.model.est <- list()
 
+
 ## simulation replication #####
-for(nrep in 4) # nrep <- 4
+#  for(nrep in 3:5) # nrep <- 1
+#   for(nrep in 8:10) # nrep <- 1
+#     for(nrep in 12:15) # nrep <- 1
+#       for(nrep in 18:20) # nrep <- 1
+#         for(nrep in 23:25) # nrep <- 1
+#           for(nrep in 27:30) # nrep <- 1
+#             for(nrep in 33:35) # nrep <- 1
+#               for(nrep in 38:40) # nrep <- 1
+#                 for(nrep in 42:45) # nrep <- 1
+#                   for(nrep in 48:50) # nrep <- 1
+#                     for(nrep in 52:55) # nrep <- 1
+#                       for(nrep in 57:60) # nrep <- 1
+#                         for(nrep in 63:65) # nrep <- 1
+#                           for(nrep in 68:70) # nrep <- 1
+#                             for(nrep in 72:75) # nrep <- 1
+#                               for(nrep in 77:80) # nrep <- 1
+#                                 for(nrep in 82:85) # nrep <- 1
+#                                   for(nrep in 88:90) # nrep <- 1
+#                                     for(nrep in 92:95) # nrep <- 1
+                                      for(nrep in 98:100) # nrep <- 1 
+  
 {
   test.mat.model <- list()
   vt.model <- NULL
   rt.model <- NULL
   fdr.model <- NULL
-load(file = paste0("sim_outputnew_", nrep, ".RData"))
+load(file = paste0("sim_data/sim_outputnew_", nrep, ".RData"))
 
 
 
@@ -276,8 +297,8 @@ for(i in 4){ # i <- 1
 res.outnew_ks <- list(best.model.est = best.model.est[[nrep]], 
                 fdr.est = fdr.est[[nrep]],
                 rt.est = rt.est[[nrep ]])
-save(res.outnew_ks, file = paste0("res.outnew_ks_", nrep, ".RData"))
- write.csv(list_cov_out1_ks, file = paste0("list_cov_out1_ks_",nrep,  ".csv"), row.names = FALSE)
+save(res.outnew_ks, file = paste0("sim_ks/res.outnew_ks_", nrep, ".RData"))
+ write.csv(list_cov_out1_ks, file = paste0("sim_ks/ist_cov_out1_ks_",nrep,  ".csv"), row.names = FALSE)
 
 }
 

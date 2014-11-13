@@ -30,11 +30,11 @@ Blockorder <- as.factor(Blockorder)
 Block <- as.factor(Block)
 Line <- as.factor(Line)
 Diet <- as.factor(Diet)
-# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
-
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
-load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
+# 
+# load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_fit.RData")
+# load("/run/user/1000/gvfs/smb-share:server=cyfiles.iastate.edu,share=09/22/ntyet/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model7.Line.Concb.RINa.lneut.llymp.lmono.lbaso.Block/Model7_result.RData")
 
 full_model <- model.matrix(~Line + Concb + RINa + 
                              lneut + llymp + lmono + 
@@ -183,9 +183,9 @@ list_model <- function(full_model){
 #                    s=s, s_degene = s_degene, 
 #                    y = y)
 
-fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <- 1
-  y <- sim_output$y
-  s <- sim_output$s
+fit_model <- function(full_model, model_th, criteria, sim_outputnew){ # model_th <- 1
+  y <- sim_outputnew$y
+  s <- sim_outputnew$s 
   log.offset <- log(apply(y, 2, quantile, 0.75))
   list_out <- list_model(full_model)
   design.list <- list_out$design.list
@@ -211,13 +211,19 @@ fit_model <- function(full_model, model_th, criteria, sim_output){ # model_th <-
 fdr.est <- rt.est <- best.model.est <- list()
 
 ## simulation replication #####
-for(nrep in 84:85) # nrep <- 1
+
+# for(nrep in 76:80) # nrep <- 6
+# for(nrep in 81:85) # nrep <- 6
+# for(nrep in 86:90) # nrep <- 6
+#  for(nrep in 91:95) # nrep <- 6
+for(nrep in 96:100) # nrep <- 6
+  
 {
   test.mat.model <- list()
   #vt.model <- NULL
   rt.model <- NULL
   fdr.model <- NULL
-load(file = paste0("sim_outputnew_", nrep, ".RData"))
+load(file = paste0("sim_data/sim_outputnew_", nrep, ".RData"))
 
 
 
@@ -226,7 +232,7 @@ list_cov_out1_ad <-  data.frame(Date=as.Date(character()),
                                  User=character(), 
                                  stringsAsFactors=FALSE) 
 
-for(i in 2){ # i <- 1
+for(i in 2){ # i <- 2
   model_th <- 1
   full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
                                lneut + llymp + lmono + leosi + lbaso + 
@@ -276,8 +282,8 @@ for(i in 2){ # i <- 1
 res.outnew_ad <- list(best.model.est = best.model.est[[nrep]], 
                 fdr.est = fdr.est[[nrep]],
                 rt.est = rt.est[[nrep ]])
-save(res.outnew_ad, file = paste0("res.outnew_ad_", nrep, ".RData"))
- write.csv(list_cov_out1_ad, file = paste0("list_cov_out1_ad_",nrep,  ".csv"), row.names = FALSE)
+save(res.outnew_ad, file = paste0("sim_ad/res.outnew_ad_", nrep, ".RData"))
+ write.csv(list_cov_out1_ad, file = paste0("sim_ad/list_cov_out1_ad_",nrep,  ".csv"), row.names = FALSE)
 
 }
 
