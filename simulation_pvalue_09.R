@@ -7,21 +7,27 @@ source("simulation_runnrep.R")
 ## simulation replication #####
 pm1 <- proc.time()
 size <- 5000
-pi0 <- .7
+pi0 <- .9
   vnrep <- 1:20
 # vnrep <- 21:40
 # vnrep <- 41:60
 # vnrep <- 61:80
 # vnrep <- 81:100
 nc <- c("pvalue05", "ad")
-criteria <- 1 #pvalue05
+criteria <- 2 #pvalue05
 for(nrep in vnrep) # vnrep <- 1:2
-{
-  simdat <- simcount(nrep, size, pi0)
-  pi0_dir <- paste0(nc[criteria], "/pi0_", pi0) #ms_val <- data.frame(pvalue05 = "pvalue05", ks = "ks", ad= "ad", cvm = "cvm")
+{ pi0_dir <- paste0(nc[criteria], "/pi0_", pi0) #ms_val <- data.frame(pvalue05 = "pvalue05", ks = "ks", ad= "ad", cvm = "cvm")
+  pi0_dir1 <- paste0(nc[1], "/pi0_", pi0) #ms_val <- data.frame(pvalue05 = "pvalue05", ks = "ks", ad= "ad", cvm = "cvm")
   dir.create(pi0_dir, showWarnings = FALSE)
   
-  save(simdat, file = paste0(pi0_dir,"/simdat_", nrep, ".RData"))
+  if (criteria ==1){
+    simdat <- simcount(nrep, size, pi0)
+    save(simdat, file = paste0(pi0_dir,"/simdat_", nrep, ".RData"))  
+  }
+  if (criteria ==2){
+    
+    load(file= paste0(pi0_dir1,"/simdat_", nrep, ".RData"))
+  }
   print(paste0("nrep = ", nrep ))
   runnrep(simdat, criteria)
 }
@@ -29,6 +35,8 @@ for(nrep in vnrep) # vnrep <- 1:2
 
 proc.time()-pm1
 # 
+# nrep <- 1
+
 # nrep <- 1
 # 
 # simdat <- simcount(nrep, size)

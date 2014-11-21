@@ -1,4 +1,4 @@
-source("simulation_loadModel7.R")
+source("simulation_loadModel72.R")
 source("simulation_criteria.R")
 source("simulation_listmodel.R")
 source("simulation_fitmodel.R")
@@ -7,21 +7,22 @@ source("simulation_runnrep.R")
 ## simulation replication #####
 pm1 <- proc.time()
 size <- 5000
-pi0 <- .7
-  vnrep <- 1:20
-# vnrep <- 21:40
-# vnrep <- 41:60
-# vnrep <- 61:80
-# vnrep <- 81:100
-nc <- c("pvalue05", "ad")
+#  vnrep <- 1:10
+#  vnrep <- 11:20
+# vnrep <- 21:30
+# vnrep <- 31:40
+# vnrep <- 41:50
+# vnrep <- 51:60
+# vnrep <- 61:70
+# vnrep <- 71:80
+#  vnrep <- 81:90
+vnrep <- 91:100
+
 criteria <- 1 #pvalue05
-for(nrep in vnrep) # vnrep <- 1:2
+for(nrep in vnrep) # nrep <- 500
 {
-  simdat <- simcount(nrep, size, pi0)
-  pi0_dir <- paste0(nc[criteria], "/pi0_", pi0) #ms_val <- data.frame(pvalue05 = "pvalue05", ks = "ks", ad= "ad", cvm = "cvm")
-  dir.create(pi0_dir, showWarnings = FALSE)
-  
-  save(simdat, file = paste0(pi0_dir,"/simdat_", nrep, ".RData"))
+  simdat <- simcount(nrep, size)
+  save(simdat, file = paste0("simdat2/simdat_", nrep, ".RData"))
   print(paste0("nrep = ", nrep ))
   runnrep(simdat, criteria)
 }
