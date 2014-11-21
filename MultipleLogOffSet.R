@@ -1,15 +1,16 @@
 require(Matrix)
-#library(QuasiSeq)
+library(QuasiSeq)
 library(edgeR)
 require(reshape)
 require(plyr)
 library(fields)
 library(reshape)
 library(fdrtool)
-source("QL.fit.R")
-source("NBDev.R")
-source("PoisDev.R")
-source("QL.results.R")
+library(optimx)
+# source("QL.fit.R")
+# source("NBDev.R")
+# source("PoisDev.R")
+# source("QL.results.R")
 scount <- read.table("paired end uniquely mapped reads count table.txt", 
                      header = T)
 row.names(scount) <- scount[,1]
@@ -69,8 +70,8 @@ attach(covset)
 counts <- as.matrix(scount[rowSums(scount[,-1]>0)>3&
                              rowMeans(scount[,-1])>8 ,-1])
 
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_fit.RData")
-load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.neut.lymp.mono.eosi.baso.Block.Blockorder/Model1_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.neut.lymp.mono.eosi.baso.Block.Blockorder/Model1_result.RData")
 
 
 load("new.beta.RData")
@@ -81,24 +82,7 @@ load("new.beta.RData")
 
 dim(fit$coef)
 #dl2: design MATRIX; b: fit coefficients, w: fit NB.disp
-f <- function(m) class(try(solve(m),silent=T))=="matrix"
-se.b1 <- function(b,w,dl2){
-  
-  X <- dl2
-  
-  eta <- c(X%*%b)
-  
-  mu <- exp(eta)
-  
-  fish <- t(X)%*%(diag(nrow(X))*mu/(mu*w+1))%*%X
-  
-  if(f(fish)){
-    fish.inv <- solve(fish)
-    return(sqrt(diag(fish.inv)))
-  }else{
-    return(rep(0, ncol(X)))
-  }
-}
+
 list_model <- function(full_model){
   n <- dim(full_model)[2]
   variable_name <- colnames(full_model)[-1]
@@ -189,11 +173,34 @@ list_model <- function(full_model){
   return(list(design.list = design.list, test.mat = test.mat))
 }
 
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.neut.lymp.mono.eosi.baso.Block.Blockorder/Model1_fit.RData")
+load("U:/R/RA/Data/RFI-newdata/resultpairedcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.neut.lymp.mono.eosi.baso.Block.Blockorder/Model1_result.RData")
 
+# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_fit.RData")
+# load("U:/R/RA/Data/RFI-newdata/resultpairedlogcbc/pvalue05/Model1.Line.Diet.RFI.Concb.RINb.Conca.RINa.lneut.llymp.lmono.leosi.lbaso.Block.Blockorder/Model1_result.RData")
+
+f <- function(m) class(try(solve(m),silent=T))=="matrix"
+se.b1 <- function(b,w,dl2){
+  
+  X <- dl2
+  
+  eta <- c(X%*%b)
+  
+  mu <- exp(eta)
+  
+  fish <- t(X)%*%(diag(nrow(X))*mu/(mu*w+1))%*%X
+  
+  if(f(fish)){
+    fish.inv <- solve(fish)
+    return(sqrt(diag(fish.inv)))
+  }else{
+    return(rep(0, ncol(X)))
+  }
+}
 prefit <- fit
 model_th <- 1
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block + Blockorder)
 
 #prefit is the output of QL.fit using the full model including covariates
@@ -211,17 +218,22 @@ for(j in 1:nrow(prefit$coefficients)){
 dim(ses)
 
 del.gene <- which(apply(ses, 1, sum)==0)
+del.gene #  6269  7299  9257 10405 11574
+
+
 
 bvec <- fit$coef[-del.gene, 3]
 svec <- ses[-del.gene,3]^2
 length(bvec)
 length(svec)
 
+
+
 counts2 <- counts[-del.gene,]
 log.offset <- log(apply(counts2, 2, quantile, 0.75))
 model_th <- 111111 # test for Emperial Bayes method#####
 full_model <- model.matrix(~Line + Diet + RFI + Concb + RINb + Conca + RINa + 
-                             lneut + llymp + lmono + leosi + lbaso + 
+                             neut + lymp + mono + eosi + baso + 
                              Block + Blockorder)
 
 
@@ -230,7 +242,7 @@ design.list <- list_out$design.list
 test.mat <- list_out$test.mat
 fit2 <- QL.fit(counts2, design.list, test.mat, # dim(counts)
                log.offset = log.offset, print.progress=TRUE,
-               Model = "NegBin")
+               Model = "NegBin", method = "optim")
 
 result2<- QL.results(fit2, Plot = FALSE)
 
@@ -246,8 +258,10 @@ dim(ses)
 
 del.gene <- which(apply(ses, 1, sum)==0)
 
-bvec <- fit$coef[-del.gene, 3]
-svec <- ses[-del.gene,3]^2
+del.gene
+
+bvec <- fit2$coef[, 3]
+svec <- ses[,3]^2
 length(bvec)
 length(svec)
 #### fit QL.fit model excluding those genes with non inverse Hessian Matrix#####
@@ -255,7 +269,8 @@ length(svec)
 ## first: obtain estimate of sigma_k for each sample, k = 1, 23#####
 
 s0b0 <- function(x){
-  s0 <- x[1]; b0 <- x[2]
+  s0 <- x
+  b0 <- sum(bvec*1/(svec+s0))/sum(1/(svec+s0))
   l <- sum(-log(svec+s0) - (bvec - b0)^2/(svec+s0))/2
   -l
 }
@@ -266,9 +281,12 @@ g.s0b0 <- function(x){
 }
 # k <- 1 # s0 <- 1; b0 <- 0
 
-optimx(c(1, 0), s0b0, g.s0b0, method = "BFGS")
+optimx(c(.3, 1), s0b0, g.s0b0, method = "BFGS")
 # 
-# optimx(c(1, 0), s0b0)
+mean(bvec)
+
+optimx(c(.1), s0b0, lower = 0)
+
 # install.packages("optimx")
 # library("optimx")
 
