@@ -1,0 +1,456 @@
+%% This is an example file to show how to use JASA_manu.sty and related 
+%% files written by Eric C. Anderson.  It's sort of a fly-by-night endeavor,
+%% but I got it to work for me!!
+
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{amsmath, amssymb, mathtools }
+\usepackage{enumerate}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{verbatim}
+\usepackage{color}
+\usepackage{pstricks}
+\usepackage{eqnarray}
+\usepackage{psfrag}
+\usepackage{epsfig,epsf}
+
+%% THE NEXT TWO LINES INSERT THE PACKAGES FOR JASA FORMAT:
+\usepackage[default]{jasa_harvard}    % 	for formatting citations in text
+\usepackage{JABES_manu}
+
+
+%% CHANGING THE 'AND' IN THE HARVARD BIBLIOGRAPHY PACKAGE TO WHAT IT OUGHT TO BE
+\renewcommand{\harvardand}{and}
+
+
+%% A FEW NEWCOMMANDS FOR THE CONTENT IN THE EXAMPLE
+%% NOT CRUCIAL TO THE USE OF JASA_manu.sty
+\newcommand{\Dir}{\mathrm{Dir}}
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand{\thh}{^\mathrm{th}}
+\newcommand{\modtwo}{\mathrm{[mod~2]}}
+\newcommand{\thetaof}[2]{\theta \langle #1;#2\rangle}
+\newcommand{\Mpa}{M_\mathrm{P,A}}
+\newcommand{\Ma}{M_\mathrm{A}}
+\newcommand{\rjaccept}{\mathcal{A}}
+
+
+
+%% Here is a hand-formatted bibliography reference list entry.
+%% The command should be included in the NOTE field of the entry in the .bib file
+
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+  # set global chunk options
+  opts_chunk$set(fig.path='figure/minimal-', fig.align='center', fig.show='hold')
+options(replace.assign=TRUE,width=90)
+@
+
+
+\title{Detecting Differential Expressed Genes in RNA-Seq Data \\ 
+Accounting for Nuisance Covariates}
+\author{Dan Nettleton  and Yet Nguyen\\
+Department of Statistics \\ 
+Iowa State University, Ames, IA 50010\\ 
+email: \texttt{ntyet@iastate.edu} }
+
+\maketitle
+
+
+%% ABSTRACT
+
+%\newpage
+\begin{center}
+\textbf{Abstract}
+\end{center}
+
+Suppose that we have RNA sequencing (RNA-seq) read count data
+on $J$ genes from an experiment with two treatment groups.
+We want to find genes that are differentially expressed (DE) between
+two treatment groups.
+Analyses can often be complicated by the presence of nuisance factors
+that arise due to experimental design limitations and heterogeneity of
+experimental units that can be seen in  covariates
+measured for each experimental unit and/or RNA sample. In this paper, we propose a method using QuasiSeq (Steve Lund et. al 2012) and backward selection strategy to obtain a  model for detecting DE genes between 2 treatment groups. 
+There are 2 criteria using to do backward selection procedure. The first one is number of pvalue less than 0.05, denoted as pvalue05. The second one is the Cramer Von Mises statistics between Grenander Estimator of pvalue of each covariate to the uniform distribution, denoted as cvm. At each step of backward selection, the covariate has smallest value of pvalue05 (or cvm) is dropped, the procedure continue until the two group treatment is dropped. After this has been done, we have a set of models. The model has largest number of qvalue less than 0.05 among those will be pick up as final model for differential expressed analysis. We apply the method for detecting DE genes between 2 RFI Lines in RNA-Seq dataset in the presence of nuisance covariates such as Diet, RFI value, CBC covariate (neutrophil, lymphocyte, monocyte, eosinophil and basophil) and technical variables (processing batch, RNA concentration before and after globin depletion, RNA integrity number (RIN) before and after globin depletion
+variables).
+
+
+
+\vspace*{.3in}
+
+\noindent\textsc{Keywords}: {Backward Selection, Grenander Estimator, qvalue, False Discovery Rate, Cramer Von Mises, RNA-Seq, Nuisance Covariates, Differential Expression.}
+
+%\newpage
+
+\section{Introduction}
+RNASeq data set is a $25320 \times 31$ table of count data corresponding
+to 25320 genes of 31 pigs from 2 Lines: high RFI Line and low RFI
+Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet
+2). For Diet 1, the RNA data are from 7 low RFI line pigs and 8 high RFI
+line pigs. For Diet 2, the RNA data are from 8 low RFI line pigs and 8
+high RFI line pigs.
+The number of genes analyzed is
+12280. Those are genes with average counts greater than 8 and for
+which there are at least four samples with non-zero counts.
+
+\section{Methods}
+Let $y_{ijk}$ is the count of gene $g$ from sample $j$ of treatment group $i$. Then suppose 
+\[
+y_{gij} \sim NB(\mu_{gij}, \omega_g), \log(\mu_{gij}) = o_{ij} + Line*\beta_{line} + X_{(ij)}\beta,
+\]
+
+where $X$ is the desing matrix $31\times 23$ and $X_{(ij)}$ is the row of $X$ 
+corresponding to sample $j$ of treatment group $i$, $\beta$ is the vector of parameter corresponding to  nuisance covariates.
+\subsection{False Discovery Rate}
+...............
+\subsection{Grenander Estimator and Cramer Von Mises Statistics}
+The Grenander (1956) density estimator is given by the slopes of the least concave majorant (LCM) of the empirical distribution function (ECDF). It is a decreasing piecewise-constant function and can be shown to be the non-parametric maximum likelihood estimate (NPMLE) under the assumption of a decreasing density (note that the ECDF is the NPMLE without this assumption). 
+
+The Cramer-Von-Mises statistics is a criterion used for calculating the distance between  a cumulative distribution function $F^*$ compared to a given empirical distribution function $F_n$, or for comparing two empirical distributions. It is defined as
+
+\[
+\omega^2 = \int_{-\infty}^{\infty} [F_n(x)-F^*(x)]^2\,\mathrm{d}F^*(x) .
+\]
+.....................
+\subsection{Backward Selection Procedure and Stopping Criteria}
+
+Starting model includes all covariates of interest. For each covariate,
+we conduct a Likelihood Ratio Test using QuasiSeq of the full model
+vs. the reduced model obtained from the full model by deleting the
+considered covariate. We collect the set of pvalues of all genes from
+the tests.
+Obtain the number of genes with pvalues less than or equal 0.05 (This is the criterion named pvalue05).
+Obtain Grenander CDF estimator of the empirical CDF of the sample
+from those pvalues.
+Obtain Craḿer-Von-Mises statistics,
+ statistics between the Grenander CDF and
+uniform(0,1) CDF.
+Exclude the covariate corresponding to the smallest value in each criterion.
+
+The procedure will be terminated until the Line effect is excluded.  Then the final model will be used for differential expression analysis will be the model which has largest number of pvalue of Line effect less than 0.05.
+\section{Real Data Analysis}
+\begin{figure}[h!]
+\centering
+\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCpvalue05.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on number of pvalue less than 0.05 in each step of excluding one covariate. }
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCad.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on Anderson-Darling statistics in each step of excluding one covariate. }
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCcvm.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on Cramer-Von-Miser statistics in each step of excluding one covariate. }
+\end{figure}
+
+
+\section{Simulation Justification based on Real Data}
+We perform a simulation study based on the RNASeq data from RFI project. From choosen 
+model (model 7 of pvalue05 criterion), we obtain estimates of coeficients of $\beta_{Line}$ and $\beta$, also estimate of the number of true null $m_{0}$ for Line effect. Then we assign the coefficient $\beta_{Line}$ of  $m_0$  least significant genes (with respect to Line effect) = 0. The other coefficients keep the same. 
+
+Next, we select the genes whose correlation of fitted count and real count data is at lest 0.8 to be the set of genes that we will simulate the count data. We randomly pickup 5000 genes from this set and simulate a count data of size $5000\times 31$ where each count value is simulated from a negative binomial distribution with mean and dispersion parameters are those of fitted original genes. Then, we apply pvalue05 criteria for selection model procedure. And we also run a model with only Line effect to do comparision. There are 100 simulations. The result is summarized in the table below.
+% \begin{tabular}
+% Method    & FDR(sdFDR)  & Rt (sdRt)\\
+% pvalue05  & 0.105(0.002) &  
+% \end{tabular}
+
+<<echo = FALSE, results='hide'>>=
+pi0 <- c(0.9, 0.8, 0.7, 0.6)
+fdrb.mean <- fdrf.mean <- fdro.mean <- fdrl.mean <- NULL
+fdrb.se <- fdrf.se <- fdro.se <- fdrl.se <- NULL
+
+stb.mean <- stf.mean <- sto.mean <- stl.mean <- NULL
+stb.se <- stf.se <- sto.se <- stl.se <- NULL
+
+paucb.mean <- paucf.mean <- pauco.mean <- paucl.mean <- NULL
+paucb.se <- paucf.se <- pauco.se <- paucl.se <- NULL
+best.model <- NULL
+ind.model <- NULL
+for (pind in 1:length(pi0))# pind <- 2
+{
+  dir <- paste0("pvalue05/pi0_", pi0[pind])
+
+dir.list <- list.files(dir)
+indres <- grep("res", dir.list)
+best.model.est <- list()
+nrep <- length(indres)
+ind.b <- NULL
+rt.b <- fdr.b <- pauc.b <- st.b <- NULL
+rt.f<- fdr.f<- pauc.f <- st.f<- NULL
+  rt.l <- fdr.l <- pauc.l <- st.l <- NULL
+  rt.o <- fdr.o <- pauc.o <- st.o <- NULL
+  int.model <- uni.model <- c("Line", "RINa", "Concb", 
+                              "lymp", "neut", 
+                              "mono", "baso", "Block")
+for(i in 1:length(indres)){
+   diri <- paste0(dir, "/", dir.list[indres[i]])
+  load(file = diri)
+  best.model.est[[i]] <- res$best.model.est
+  l <- length(res$rt.est)
+  ind.b[i] <- which.max(res$rt.est[-c(l,l-1)])
+   if (ind.b[i]==7) {
+     int.model <- intersect(int.model, rownames(best.model.est[[i]]))
+     uni.model <- union(uni.model, rownames(best.model.est[[i]]))
+   }
+  fdr.b[i] <- res$fdr.est[ind.b[i]]
+  rt.b[i] <- max(res$rt.est[-c(l,l-1)])
+  st.b[i] <- res$st.est[ind.b[i]]
+  pauc.b[i] <- res$pauc.est[ind.b[i]]
+  
+  
+  fdr.f[i] <- res$fdr.est[1]
+  rt.f[i] <- res$rt.est[1]
+  st.f[i] <- res$st.est[1]
+  pauc.f[i] <- res$pauc.est[1]
+  
+  
+  fdr.l[i] <- res$fdr.est[l-1]
+  rt.l[i] <- res$rt.est[l-1]
+  st.l[i] <- res$st.est[l-1]
+  pauc.l[i] <- res$pauc.est[l-1]
+  
+  fdr.o[i] <- res$fdr.est[l]
+  rt.o[i] <- res$rt.est[l]
+  st.o[i] <- res$st.est[l]
+  pauc.o[i] <- res$pauc.est[l]
+  
+}
+#fdr.best.sim
+fdrb.mean[pind] <- mean(fdr.b); fdrf.mean[pind] <- mean(fdr.f);fdro.mean[pind] <- mean(fdr.o);fdrl.mean[pind] <- mean(fdr.l)
+
+fdrb.se[pind] <- sd(fdr.b)/sqrt(nrep);fdrf.se[pind] <- sd(fdr.f)/sqrt(nrep);fdro.se[pind] <- sd(fdr.o)/sqrt(nrep);fdrl.se[pind] <- sd(fdr.l)/sqrt(nrep)
+  
+  
+stb.mean[pind] <- mean(st.b); stf.mean[pind] <- mean(st.f);sto.mean[pind] <- mean(st.o);stl.mean[pind] <- mean(st.l)
+
+stb.se[pind] <- sd(st.b)/sqrt(nrep);stf.se[pind] <- sd(st.f)/sqrt(nrep);sto.se[pind] <- sd(st.o)/sqrt(nrep);stl.se[pind] <- sd(st.l)/sqrt(nrep)
+  
+
+paucb.mean[pind] <- mean(pauc.b); paucf.mean[pind] <- mean(pauc.f,na.rm = T);pauco.mean[pind] <- mean(pauc.o);paucl.mean[pind] <- mean(pauc.l)
+
+paucb.se[pind] <- sd(pauc.b)/sqrt(nrep);paucf.se[pind] <- sd(pauc.f, na.rm = T)/sqrt(length(!is.na(pauc.f)));pauco.se[pind] <- sd(pauc.o)/sqrt(nrep);paucl.se[pind] <- sd(pauc.l)/sqrt(nrep)
+  
+
+best.model[pind] <- mean(ind.b == 7) # best.model.est
+if (all(int.model == uni.model))
+{ind.model[pind] <- 1}else{
+  ind.model[pind] <- 0
+}
+  
+}
+
+outfdrb <- data.frame(pi0 = pi0, fdrb.mean = fdrb.mean, fdrb.se= fdrb.se, true.model = best.model)
+outfdrf <- data.frame(pi0 = pi0, fdrf.mean = fdrf.mean, fdrf.se= fdrf.se, true.model = best.model)
+outfdro <- data.frame(pi0 = pi0, fdro.mean = fdro.mean, fdro.se= fdro.se, true.model = best.model)
+outfdrl <- data.frame(pi0 = pi0, fdrl.mean = fdrl.mean, fdrl.se= fdrl.se, true.model = best.model)
+
+outfdrb
+outfdro
+outfdrf
+outfdrl
+
+outpaucb <- data.frame(pi0 = pi0, paucb.mean = paucb.mean, paucb.se= paucb.se, true.model = best.model)
+outpaucf <- data.frame(pi0 = pi0, paucf.mean = paucf.mean, paucf.se= paucf.se, true.model = best.model)
+outpauco <- data.frame(pi0 = pi0, pauco.mean = pauco.mean, pauco.se= pauco.se, true.model = best.model)
+outpaucl <- data.frame(pi0 = pi0, paucl.mean = paucl.mean, paucl.se= paucl.se, true.model = best.model)
+
+outpaucb
+outpauco
+outpaucf
+outpaucl
+
+
+outstb <- data.frame(pi0 = pi0, stb.mean = stb.mean, stb.se= stb.se, true.model = best.model)
+outstf <- data.frame(pi0 = pi0, stf.mean = stf.mean, stf.se= stf.se, true.model = best.model)
+outsto <- data.frame(pi0 = pi0, sto.mean = sto.mean, sto.se= sto.se, true.model = best.model)
+outstl <- data.frame(pi0 = pi0, stl.mean = stl.mean, stl.se= stl.se, true.model = best.model)
+
+outstb
+outsto
+outstf
+outstl
+
+fdr <- c(fdrb.mean, fdro.mean, fdrl.mean, fdrf.mean)
+pauc<- c(paucb.mean, pauco.mean, paucl.mean, paucf.mean)
+st <- c(stb.mean, sto.mean, stl.mean, stf.mean)
+p <- rep(pi0, 4)
+mt <- rep(c("B", "O", "L", "F"), each = 4)
+library(ggplot2)
+d1 <- data.frame(p = p, mt = mt, fdr = fdr, pauc = pauc, st = st)
+
+
+
+fdrb.mean <- fdrf.mean <- fdro.mean <- fdrl.mean <- NULL
+fdrb.se <- fdrf.se <- fdro.se <- fdrl.se <- NULL
+
+stb.mean <- stf.mean <- sto.mean <- stl.mean <- NULL
+stb.se <- stf.se <- sto.se <- stl.se <- NULL
+
+paucb.mean <- paucf.mean <- pauco.mean <- paucl.mean <- NULL
+paucb.se <- paucf.se <- pauco.se <- paucl.se <- NULL
+best.model <- NULL
+ind.model <- NULL
+for (pind in 1:length(pi0))# pind <- 1
+{
+  dir <- paste0("ad/pi0_", pi0[pind])
+
+dir.list <- list.files(dir)
+indres <- grep("res", dir.list)
+best.model.est <- list()
+nrep <- length(indres)
+ind.b <- NULL
+rt.b <- fdr.b <- pauc.b <- st.b <- NULL
+rt.f<- fdr.f<- pauc.f <- st.f<- NULL
+  rt.l <- fdr.l <- pauc.l <- st.l <- NULL
+  rt.o <- fdr.o <- pauc.o <- st.o <- NULL
+  int.model <- uni.model <- c("Line", "RINa", "Concb", 
+                              "lymp", "neut", 
+                              "mono", "baso", "Block")
+for(i in 1:length(indres)){
+   diri <- paste0(dir, "/", dir.list[indres[i]])
+  load(file = diri)
+  best.model.est[[i]] <- res$best.model.est
+  l <- length(res$rt.est)
+  ind.b[i] <- which.max(res$rt.est[-c(l,l-1)])
+   if (ind.b[i]==7) {
+     int.model <- intersect(int.model, rownames(best.model.est[[i]]))
+     uni.model <- union(uni.model, rownames(best.model.est[[i]]))
+   }
+  fdr.b[i] <- res$fdr.est[ind.b[i]]
+  rt.b[i] <- max(res$rt.est[-c(l,l-1)])
+  st.b[i] <- res$st.est[ind.b[i]]
+  pauc.b[i] <- res$pauc.est[ind.b[i]]
+  
+  
+  fdr.f[i] <- res$fdr.est[1]
+  rt.f[i] <- res$rt.est[1]
+  st.f[i] <- res$st.est[1]
+  pauc.f[i] <- res$pauc.est[1]
+  
+  
+  fdr.l[i] <- res$fdr.est[l-1]
+  rt.l[i] <- res$rt.est[l-1]
+  st.l[i] <- res$st.est[l-1]
+  pauc.l[i] <- res$pauc.est[l-1]
+  
+  fdr.o[i] <- res$fdr.est[l]
+  rt.o[i] <- res$rt.est[l]
+  st.o[i] <- res$st.est[l]
+  pauc.o[i] <- res$pauc.est[l]
+  
+}
+#fdr.best.sim
+fdrb.mean[pind] <- mean(fdr.b); fdrf.mean[pind] <- mean(fdr.f);fdro.mean[pind] <- mean(fdr.o);fdrl.mean[pind] <- mean(fdr.l)
+
+fdrb.se[pind] <- sd(fdr.b)/sqrt(nrep);fdrf.se[pind] <- sd(fdr.f)/sqrt(nrep);fdro.se[pind] <- sd(fdr.o)/sqrt(nrep);fdrl.se[pind] <- sd(fdr.l)/sqrt(nrep)
+  
+  
+stb.mean[pind] <- mean(st.b); stf.mean[pind] <- mean(st.f);sto.mean[pind] <- mean(st.o);stl.mean[pind] <- mean(st.l)
+
+stb.se[pind] <- sd(st.b)/sqrt(nrep);stf.se[pind] <- sd(st.f)/sqrt(nrep);sto.se[pind] <- sd(st.o)/sqrt(nrep);stl.se[pind] <- sd(st.l)/sqrt(nrep)
+  
+
+paucb.mean[pind] <- mean(pauc.b); paucf.mean[pind] <- mean(pauc.f,na.rm = T);pauco.mean[pind] <- mean(pauc.o);paucl.mean[pind] <- mean(pauc.l)
+
+paucb.se[pind] <- sd(pauc.b)/sqrt(nrep);paucf.se[pind] <- sd(pauc.f, na.rm = T)/sqrt(length(!is.na(pauc.f)));pauco.se[pind] <- sd(pauc.o)/sqrt(nrep);paucl.se[pind] <- sd(pauc.l)/sqrt(nrep)
+  
+
+best.model[pind] <- mean(ind.b == 7) # best.model.est
+if (all(int.model == uni.model))
+{ind.model[pind] <- 1}else{
+  ind.model[pind] <- 0
+}
+  
+}
+
+outfdrb <- data.frame(pi0 = pi0, fdrb.mean = fdrb.mean, fdrb.se= fdrb.se, true.model = best.model)
+outfdrf <- data.frame(pi0 = pi0, fdrf.mean = fdrf.mean, fdrf.se= fdrf.se, true.model = best.model)
+outfdro <- data.frame(pi0 = pi0, fdro.mean = fdro.mean, fdro.se= fdro.se, true.model = best.model)
+outfdrl <- data.frame(pi0 = pi0, fdrl.mean = fdrl.mean, fdrl.se= fdrl.se, true.model = best.model)
+
+outfdrb
+outfdro
+outfdrf
+outfdrl
+
+outpaucb <- data.frame(pi0 = pi0, paucb.mean = paucb.mean, paucb.se= paucb.se, true.model = best.model)
+outpaucf <- data.frame(pi0 = pi0, paucf.mean = paucf.mean, paucf.se= paucf.se, true.model = best.model)
+outpauco <- data.frame(pi0 = pi0, pauco.mean = pauco.mean, pauco.se= pauco.se, true.model = best.model)
+outpaucl <- data.frame(pi0 = pi0, paucl.mean = paucl.mean, paucl.se= paucl.se, true.model = best.model)
+
+outpaucb
+outpauco
+outpaucf
+outpaucl
+
+
+outstb <- data.frame(pi0 = pi0, stb.mean = stb.mean, stb.se= stb.se, true.model = best.model)
+outstf <- data.frame(pi0 = pi0, stf.mean = stf.mean, stf.se= stf.se, true.model = best.model)
+outsto <- data.frame(pi0 = pi0, sto.mean = sto.mean, sto.se= sto.se, true.model = best.model)
+outstl <- data.frame(pi0 = pi0, stl.mean = stl.mean, stl.se= stl.se, true.model = best.model)
+
+outstb
+outsto
+outstf
+outstl
+
+fdr <- c(fdrb.mean, fdro.mean, fdrl.mean, fdrf.mean)
+pauc<- c(paucb.mean, pauco.mean, paucl.mean, paucf.mean)
+st <- c(stb.mean, sto.mean, stl.mean, stf.mean)
+p <- rep(pi0, 4)
+mt <- rep(c("B", "O", "L", "F"), each = 4)
+library(ggplot2)
+d2 <- data.frame(p = p, mt = mt, fdr = fdr, pauc = pauc, st = st)
+
+# 
+# p1 <- ggplot(d2, aes(p, fdr, group = mt, color = mt)) + geom_line()
+# p1
+# 
+# p2 <- ggplot(d2, aes(p, pauc, group = mt, color = mt)) + geom_line()
+# p2
+
+@
+
+<<fig.height=5,fig.width=10, echo=FALSE >>=
+d <- rbind(d1, d2)
+# dim(d)
+
+dd <- cbind(d, sc = rep(c("pvalue05", "ad"), each = dim(d1)[1]))
+p3 <- ggplot(dd, aes(p, fdr, group = mt, color = mt)) + geom_line() +
+  facet_grid(. ~ sc)+ geom_hline(yintercept = 0.05)
+
+p3
+p4 <- ggplot(dd, aes(p, pauc, group = mt, color = mt)) + geom_line() +
+  facet_grid(. ~ sc)
+p4
+
+p5 <- ggplot(dd, aes(p, st, group = mt, color = mt)) + geom_line() +
+  facet_grid(. ~ sc)
+p5
+@
+
+\section*{Acknowledgments}
+% This material is based upon work supported by Agriculture and Food
+% Research Initiative Competitive Grant No. 2011-68004-30336 from
+% the USDA National Institute of Food and Agriculture, and the
+% National Science Foundation (NSF) under Grant No. 0922746.
+% Any opinions, findings, and conclusions or recommendations expressed
+% in this material are those of the authors and do not necessarily reflect
+% the views of the USDA or NSF.
+
+%% HERE WE DECLARE THE BIBLIOGRAPHYSTYLE TO USE AND THE BIBLIOGRAPHY DATABASE
+
+\end{document}
