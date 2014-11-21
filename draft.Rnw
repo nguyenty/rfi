@@ -2,11 +2,11 @@
 %% files written by Eric C. Anderson.  It's sort of a fly-by-night endeavor,
 %% but I got it to work for me!!
 
-\documentclass[11pt]{article}
 
+\documentclass[12pt, letter]{article}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{geometry}
 \usepackage{amsmath, amssymb, mathtools }
 \usepackage{enumerate}
 \usepackage{array}
@@ -17,7 +17,8 @@
 \usepackage{eqnarray}
 \usepackage{psfrag}
 \usepackage{epsfig,epsf}
-
+\usepackage{setspace}
+\doublespacing
 %% THE NEXT TWO LINES INSERT THE PACKAGES FOR JASA FORMAT:
 \usepackage[default]{jasa_harvard}    % 	for formatting citations in text
 \usepackage{JABES_manu}
@@ -53,7 +54,7 @@ options(replace.assign=TRUE,width=90)
 @
 
 
-\title{Detecting Differential Expressed Genes in RNA-Seq Data \\ 
+\title{\bf Detecting Differential Expressed Genes in RNA-Seq Data
 Accounting for Nuisance Covariates}
 \author{Dan Nettleton  and Yet Nguyen\\
 Department of Statistics \\ 
@@ -89,7 +90,7 @@ variables).
 
 %\newpage
 
-\section{Introduction}
+\section{\bf Introduction}
 RNASeq data set is a $25320 \times 31$ table of count data corresponding
 to 25320 genes of 31 pigs from 2 Lines: high RFI Line and low RFI
 Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet
@@ -100,7 +101,7 @@ The number of genes analyzed is
 12280. Those are genes with average counts greater than 8 and for
 which there are at least four samples with non-zero counts.
 
-\section{Methods}
+\section{\bf Methods}
 Let $y_{ijk}$ is the count of gene $g$ from sample $j$ of treatment group $i$. Then suppose 
 \[
 y_{gij} \sim NB(\mu_{gij}, \omega_g), \log(\mu_{gij}) = o_{ij} + Line*\beta_{line} + X_{(ij)}\beta,
@@ -108,9 +109,9 @@ y_{gij} \sim NB(\mu_{gij}, \omega_g), \log(\mu_{gij}) = o_{ij} + Line*\beta_{lin
 
 where $X$ is the desing matrix $31\times 23$ and $X_{(ij)}$ is the row of $X$ 
 corresponding to sample $j$ of treatment group $i$, $\beta$ is the vector of parameter corresponding to  nuisance covariates.
-\subsection{False Discovery Rate}
+\subsection{\bf False Discovery Rate}
 ...............
-\subsection{Grenander Estimator and Cramer Von Mises Statistics}
+\subsection{\bf Grenander Estimator and Cramer Von Mises Statistics}
 The Grenander (1956) density estimator is given by the slopes of the least concave majorant (LCM) of the empirical distribution function (ECDF). It is a decreasing piecewise-constant function and can be shown to be the non-parametric maximum likelihood estimate (NPMLE) under the assumption of a decreasing density (note that the ECDF is the NPMLE without this assumption). 
 
 The Cramer-Von-Mises statistics is a criterion used for calculating the distance between  a cumulative distribution function $F^*$ compared to a given empirical distribution function $F_n$, or for comparing two empirical distributions. It is defined as
@@ -129,13 +130,13 @@ the tests.
 Obtain the number of genes with pvalues less than or equal 0.05 (This is the criterion named pvalue05).
 Obtain Grenander CDF estimator of the empirical CDF of the sample
 from those pvalues.
-Obtain Craḿer-Von-Mises statistics,
+Obtain Craḿer-Von-Mises statistics,
  statistics between the Grenander CDF and
 uniform(0,1) CDF.
 Exclude the covariate corresponding to the smallest value in each criterion.
 
 The procedure will be terminated until the Line effect is excluded.  Then the final model will be used for differential expression analysis will be the model which has largest number of pvalue of Line effect less than 0.05.
-\section{Real Data Analysis}
+\section{\bf Real Data Analysis}
 \begin{figure}[h!]
 \centering
 \includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCpvalue05.pdf}
@@ -157,7 +158,7 @@ The procedure will be terminated until the Line effect is excluded.  Then the fi
 \end{figure}
 
 
-\section{Simulation Justification based on Real Data}
+\section{\bf Simulation Justification based on Real Data}
 We perform a simulation study based on the RNASeq data from RFI project. From choosen 
 model (model 7 of pvalue05 criterion), we obtain estimates of coeficients of $\beta_{Line}$ and $\beta$, also estimate of the number of true null $m_{0}$ for Line effect. Then we assign the coefficient $\beta_{Line}$ of  $m_0$  least significant genes (with respect to Line effect) = 0. The other coefficients keep the same. 
 
@@ -179,7 +180,7 @@ paucb.mean <- paucf.mean <- pauco.mean <- paucl.mean <- NULL
 paucb.se <- paucf.se <- pauco.se <- paucl.se <- NULL
 best.model <- NULL
 ind.model <- NULL
-for (pind in 1:length(pi0))# pind <- 2
+for (pind in 1:length(pi0))# pind <- 4
 {
   dir <- paste0("pvalue05/pi0_", pi0[pind])
 

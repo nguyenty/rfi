@@ -8,11 +8,11 @@ source("simulation_runnrep.R")
 pm1 <- proc.time()
 size <- 5000
 pi0 <- .6
-#   vnrep <- 1:20
-# vnrep <- 21:40
-# vnrep <- 41:60
-# vnrep <- 61:80
-vnrep <- 81:100
+  vnrep <- 16:20
+# vnrep <- 34:40
+# vnrep <- 51:60
+# vnrep <- 75:80
+# vnrep <- 96:100
 nc <- c("pvalue05", "ad")
 criteria <- 2 #pvalue05
 for(nrep in vnrep) # vnrep <- 1:2

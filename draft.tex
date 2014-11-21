@@ -2,13 +2,72 @@
 %% files written by Eric C. Anderson.  It's sort of a fly-by-night endeavor,
 %% but I got it to work for me!!
 
-\documentclass[11pt]{article}
 
+\documentclass[12pt, letter]{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{amssymb}
-\usepackage{amsmath}
-
+\usepackage{amsmath, amssymb, mathtools }
+\usepackage{enumerate}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{verbatim}
+\usepackage{color}
+\usepackage{pstricks}
+\usepackage{eqnarray}
+\usepackage{psfrag}
+\usepackage{epsfig,epsf}
+\usepackage{setspace}
+\doublespacing
 %% THE NEXT TWO LINES INSERT THE PACKAGES FOR JASA FORMAT:
 \usepackage[default]{jasa_harvard}    % 	for formatting citations in text
 \usepackage{JABES_manu}
@@ -33,12 +92,13 @@
 
 %% Here is a hand-formatted bibliography reference list entry.
 %% The command should be included in the NOTE field of the entry in the .bib file
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
 
 
-\title{Detecting Differential Expressed Genes in RNA-Seq Data \\ 
+
+\title{\bf Detecting Differential Expressed Genes in RNA-Seq Data
 Accounting for Nuisance Covariates}
 \author{Dan Nettleton  and Yet Nguyen\\
 Department of Statistics \\ 
@@ -50,7 +110,7 @@ email: \texttt{ntyet@iastate.edu} }
 
 %% ABSTRACT
 
-\newpage
+%\newpage
 \begin{center}
 \textbf{Abstract}
 \end{center}
@@ -72,9 +132,9 @@ variables).
 
 \noindent\textsc{Keywords}: {Backward Selection, Grenander Estimator, qvalue, False Discovery Rate, Cramer Von Mises, RNA-Seq, Nuisance Covariates, Differential Expression.}
 
-\newpage
+%\newpage
 
-\section{Introduction}
+\section{\bf Introduction}
 RNASeq data set is a $25320 \times 31$ table of count data corresponding
 to 25320 genes of 31 pigs from 2 Lines: high RFI Line and low RFI
 Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet
@@ -85,17 +145,17 @@ The number of genes analyzed is
 12280. Those are genes with average counts greater than 8 and for
 which there are at least four samples with non-zero counts.
 
-\section{Methods}
-Let $y_{ijk}$ is the count of gene $i$ from sample $j$ of treatment group $k$. Then suppose 
+\section{\bf Methods}
+Let $y_{ijk}$ is the count of gene $g$ from sample $j$ of treatment group $i$. Then suppose 
 \[
-y_{ijk} \sim NB(\mu_{ijk}, \omega_i), \log(\mu_{ijk}) = o_{jk} + Line*\beta_{line} + X_{(jk)}\beta,
+y_{gij} \sim NB(\mu_{gij}, \omega_g), \log(\mu_{gij}) = o_{ij} + Line*\beta_{line} + X_{(ij)}\beta,
 \]
 
-where $X$ is the desing matrix $31\times 23$ and $X_{(jk)}$ is the row of $X$ 
-corresponding to sample $j$ of treatment group $k$, $\beta$ is the vector of parameter corresponding to  nuisance covariates.
-\subsection{False Discovery Rate}
+where $X$ is the desing matrix $31\times 23$ and $X_{(ij)}$ is the row of $X$ 
+corresponding to sample $j$ of treatment group $i$, $\beta$ is the vector of parameter corresponding to  nuisance covariates.
+\subsection{\bf False Discovery Rate}
 ...............
-\subsection{Grenander Estimator and Cramer Von Mises Statistics}
+\subsection{\bf Grenander Estimator and Cramer Von Mises Statistics}
 The Grenander (1956) density estimator is given by the slopes of the least concave majorant (LCM) of the empirical distribution function (ECDF). It is a decreasing piecewise-constant function and can be shown to be the non-parametric maximum likelihood estimate (NPMLE) under the assumption of a decreasing density (note that the ECDF is the NPMLE without this assumption). 
 
 The Cramer-Von-Mises statistics is a criterion used for calculating the distance between  a cumulative distribution function $F^*$ compared to a given empirical distribution function $F_n$, or for comparing two empirical distributions. It is defined as
@@ -114,20 +174,58 @@ the tests.
 Obtain the number of genes with pvalues less than or equal 0.05 (This is the criterion named pvalue05).
 Obtain Grenander CDF estimator of the empirical CDF of the sample
 from those pvalues.
-Obtain Craḿer-Von-Mises statistics,
+Obtain Craḿer-Von-Mises statistics,
  statistics between the Grenander CDF and
 uniform(0,1) CDF.
 Exclude the covariate corresponding to the smallest value in each criterion.
 
 The procedure will be terminated until the Line effect is excluded.  Then the final model will be used for differential expression analysis will be the model which has largest number of pvalue of Line effect less than 0.05.
-\section{Real Data Analysis}
+\section{\bf Real Data Analysis}
 \begin{figure}[h!]
 \centering
 \includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCpvalue05.pdf}
 \caption{Backward Modelselection for RFI data using the criterion based on number of pvalue less than 0.05 in each step of excluding one covariate. }
 \end{figure}
 
-\section{Simulation Justification based on Real Data}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCad.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on Anderson-Darling statistics in each step of excluding one covariate. }
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCcvm.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on Cramer-Von-Miser statistics in each step of excluding one covariate. }
+\end{figure}
+
+
+\section{\bf Simulation Justification based on Real Data}
+We perform a simulation study based on the RNASeq data from RFI project. From choosen 
+model (model 7 of pvalue05 criterion), we obtain estimates of coeficients of $\beta_{Line}$ and $\beta$, also estimate of the number of true null $m_{0}$ for Line effect. Then we assign the coefficient $\beta_{Line}$ of  $m_0$  least significant genes (with respect to Line effect) = 0. The other coefficients keep the same. 
+
+Next, we select the genes whose correlation of fitted count and real count data is at lest 0.8 to be the set of genes that we will simulate the count data. We randomly pickup 5000 genes from this set and simulate a count data of size $5000\times 31$ where each count value is simulated from a negative binomial distribution with mean and dispersion parameters are those of fitted original genes. Then, we apply pvalue05 criteria for selection model procedure. And we also run a model with only Line effect to do comparision. There are 100 simulations. The result is summarized in the table below.
+% \begin{tabular}
+% Method    & FDR(sdFDR)  & Rt (sdRt)\\
+% pvalue05  & 0.105(0.002) &  
+% \end{tabular}
+
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+
+{\centering \includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-21} 
+\includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-22} 
+\includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-23} 
+
+}
+
+
+
+\end{knitrout}
 
 \section*{Acknowledgments}
 % This material is based upon work supported by Agriculture and Food
