@@ -101,9 +101,10 @@
 \title{\bf Detecting Differential Expressed Genes in RNA-Seq Data
 Accounting for Nuisance Covariates}
 \author{Dan Nettleton  and Yet Nguyen\\
-Department of Statistics \\ 
-Iowa State University, Ames, IA 50010\\ 
-email: \texttt{ntyet@iastate.edu} }
+Department of Statistics, 
+Iowa State University, Ames, IA 50010%\\ 
+%email: \texttt{ntyet@iastate.edu}
+}
 
 \maketitle
 
@@ -114,38 +115,66 @@ email: \texttt{ntyet@iastate.edu} }
 \begin{center}
 \textbf{Abstract}
 \end{center}
-
-Suppose that we have RNA sequencing (RNA-seq) read count data
-on $J$ genes from an experiment with two treatment groups.
-We want to find genes that are differentially expressed (DE) between
-two treatment groups.
-Analyses can often be complicated by the presence of nuisance factors
-that arise due to experimental design limitations and heterogeneity of
-experimental units that can be seen in  covariates
-measured for each experimental unit and/or RNA sample. In this paper, we propose a method using QuasiSeq (Steve Lund et. al 2012) and backward selection strategy to obtain a  model for detecting DE genes between 2 treatment groups. 
-There are 2 criteria using to do backward selection procedure. The first one is number of pvalue less than 0.05, denoted as pvalue05. The second one is the Cramer Von Mises statistics between Grenander Estimator of pvalue of each covariate to the uniform distribution, denoted as cvm. At each step of backward selection, the covariate has smallest value of pvalue05 (or cvm) is dropped, the procedure continue until the two group treatment is dropped. After this has been done, we have a set of models. The model has largest number of qvalue less than 0.05 among those will be pick up as final model for differential expressed analysis. We apply the method for detecting DE genes between 2 RFI Lines in RNA-Seq dataset in the presence of nuisance covariates such as Diet, RFI value, CBC covariate (neutrophil, lymphocyte, monocyte, eosinophil and basophil) and technical variables (processing batch, RNA concentration before and after globin depletion, RNA integrity number (RIN) before and after globin depletion
-variables).
+Differential Expression Analysis of RNA-Seq data can often be complicated by the presence of nuisance factors that arise due to experimental design limitations and heterogeneity of experimental units that can be seen in continuous and categorical covariates measured for each experimental unit and/or RNA sample. The analysis is typically done by including or ignoring all nuisance covariates. Some drawbacks of those approaches are that the FDR usually too conservative or too liberal, and the power of detecting differentiallly expressed genes is very low. To address these shortcoming, we develop a backward selection procedure to pick up the most significant covariates, which inturn are used to identify  genes that are differentially expressed. The proposed method is then applied to RNA-Seq data from Residual Feed Intake project. Furthermore, simulation results from real data show that our proposed method outperforms the traditional strategies used to detect differential expression genes accounting for nuisance covariates.
 
 
 
 \vspace*{.3in}
 
-\noindent\textsc{Keywords}: {Backward Selection, Grenander Estimator, qvalue, False Discovery Rate, Cramer Von Mises, RNA-Seq, Nuisance Covariates, Differential Expression.}
+\noindent\textsc{Keywords}: {Backward Model Selection, Grenander Estimator,  False Discovery Rate, Partial AUC, Cramer Von Mises, RNA-Seq, Nuisance Covariates, Differential Expression Analysis.}
 
 %\newpage
 
 \section{\bf Introduction}
-RNASeq data set is a $25320 \times 31$ table of count data corresponding
-to 25320 genes of 31 pigs from 2 Lines: high RFI Line and low RFI
-Line, and 2 Diets: high energy diet (Diet 1) and low energy diet (Diet
-2). For Diet 1, the RNA data are from 7 low RFI line pigs and 8 high RFI
-line pigs. For Diet 2, the RNA data are from 8 low RFI line pigs and 8
-high RFI line pigs.
-The number of genes analyzed is
-12280. Those are genes with average counts greater than 8 and for
-which there are at least four samples with non-zero counts.
+A nuisance variable, or confounded variable, is an unwanted variable that is correlated with the outcome within an experimental study and is typically of no interest to the researcher. It might be a characteristic of the experimental unit under study or any unintended influence on an experimental manipulation. A nuisance variable causes greater variability in the distribution of a sample's scores and affects all the groups measured within a given sample. In the situation of RNA-Seq experiment, accounting for nuisance variable is becoming increasingly important due to very expensive cost of the high throughput sequencing technology.
 
+As a specific motivation example, consider the RNA-Seq experiment conducted by ISU  researchers to examine gene expression in two Yorkshire residual feed intake (RFI) pig \emph{lines} feeded either by \emph{high fiber-low energy diet} or \emph{low fiber-high energy diet}. Illumina RNASeq was used to measure gene expression total 31 pigs  of full 2-factor factorial design $\emph{Line} \times \emph{Diet}$. 
+
+The main purpose of the experiment  can be describled as follows. Prior of the experiment, it was known that feed is the largest cost of US pork producer, representing 55 to 60 \% of the total cost. Hence, knowlegde on efficiency of nutrient utilization and development of new technology and mechanisms for improving feed efficiency (FE) is critical to the long term competitiveness of the US pork industry and for improving the sustainability of food supplies. In constrast to the mechanisms that govern  growth and development, our understandingn of the biological mechanisms regulating feed efficienty is limited. Therefore there is a critical need to define the mechanisms that regulate feed efficiency. Koch et. al(?) suggested the concept of residual feed intake to measure FE in cattle. RFI partitions feed intake into two part: the level of intake expected in onder to support a given rate of gain, plus a residual portion. Efficient animals have a low negative RFI, i.e., they consume less feed than expected for their rate of gain. RFI is the unique measure of FE because it represents true differences in the ability of animals to use feed energy for the metabolic processes of maintenance and growth. However, measuring RFI is expensive and time-consuming. The purpose of the study is to use whole blood from 4-5 week-old pigs  to identify differentially expressed genes between two Yorkshire lines of pigs divergently based on RFI, with the final goal of developing usefull biomakers for FE. 
+
+Blood samples were collected into Tempus 
+tubes for long-term storage and EDTA tubes for 
+complete blood count (CBC) test from 233 piglets 
+(Generation 9, at 35 ~ 42 days of age) of the two 
+Yorkshire lines of pigs divergently selected for FE 
+based on RFI, the low RFI line and the high RFI line. 
+We subsequently measured the complete blood count 
+(CBC) of all blood samples. These animals were later 
+randomly assigned to two diets of different fiber and 
+energy content, and each pig’s RFI was measured on 
+FIRE feeders. Blood samples of 8 animals of 
+extremely low RFI for the low RFI line and 
+extremely high RFI for the high RFI line on each diet 
+were selected for RNA-sequencing, with one sample 
+later dropped due to low RNA quality. RNA samples 
+were prepared and globin transcripts were depleted 
+by an RNase H-mediated method before RNA 
+sequencing. One hundred bp paired-end sequencing 
+was run on the Illumina HiSeq 2000 platform. Reads 
+were mapped to the pig reference genome 
+(Sscrofa10.2.76) using aligner STAR after quality 
+trimming and featureCounts was used to get read 
+counts for each gene. In summary, the main effect of interest is RFI Line effect (Line), and a number of nuisance covariates such as Diet, RFI value, 
+CBC values (lymphocite, neutrophil, monocyte, basophil and eisophil), and some technical variables such as processing batch (Block), processing order (Blockorder), RNA concentration before and after globin depletion (Concb, Conca), RNA Integrity Number before and after globin depletion (RINb, RINa). The RNA-Seq data consists of 12280 genes and 31 samples. 
+The preliminary analysis result of this data is either including all nuisance covariates, or ignore all nuisance covariates using QuasiSeq (Lund et al. 2012). There are 2 genes declared differentially expressed between 2 RFI lines if fitting the full model with all covariates when controlling FDR at 5\%.  For the model ignoring all nuicanse covariates, there are 233 differentially expressed genes when controlling FDR at 5\%.   The Figure 1  is showing histograms of pvalues for testing the significant of Line effect for those two scenariors. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[H]
+
+
+{\centering \includegraphics[width=6cm,height=6cm]{figure/minimal-unnamed-chunk-11} 
+\includegraphics[width=6cm,height=6cm]{figure/minimal-unnamed-chunk-12} 
+
+}
+
+\caption[The left Figure is the histogram of pvalue of Line effect for model including Line effect and all nuisance covariates]{The left Figure is the histogram of pvalue of Line effect for model including Line effect and all nuisance covariates. The right Figure is the histofram of pvalue of line effect for model including only Line Effect, and does not include any nuisance covariates.\label{fig:unnamed-chunk-1}}
+\end{figure}
+
+
+\end{knitrout}
+
+This article focuses on backward model selection procedure for choosing the model which optimal for differential expression analysis in the sense that the power of detecting differential expression genes is largest. The basis method is described in Section 2. Section 2.1 contains preliminary setup of probability model for RNA-Seq count data. Section 2.2 reviews the results on Grenander estimator of non-increasing probablility distribution function and Kolmogorov-Smirnov statistic between two distribution (ks). Section 2.3 and 2.4 contains the description of backward selection procedure using ks criteria and number of pvalues less than 0.05 (pvalue05), respectively. Section 3 demonstrate the approach using RFI RNA-Seq data above. Section 4 devotes to a simulation study that compares the proposed approach to the traditional approaches which are including or excluding all nuisance covariates. The article concludes and provides ideas for future works in Section 5. 
 \section{\bf Methods}
+\subsection{\bf Model for Count Data}
 Let $y_{ijk}$ is the count of gene $g$ from sample $j$ of treatment group $i$. Then suppose 
 \[
 y_{gij} \sim NB(\mu_{gij}, \omega_g), \log(\mu_{gij}) = o_{ij} + Line*\beta_{line} + X_{(ij)}\beta,
@@ -155,10 +184,11 @@ where $X$ is the desing matrix $31\times 23$ and $X_{(ij)}$ is the row of $X$
 corresponding to sample $j$ of treatment group $i$, $\beta$ is the vector of parameter corresponding to  nuisance covariates.
 \subsection{\bf False Discovery Rate}
 ...............
-\subsection{\bf Grenander Estimator and Cramer Von Mises Statistics}
+\subsection{\bf Grenander Estimator of Non increasing PDF}
 The Grenander (1956) density estimator is given by the slopes of the least concave majorant (LCM) of the empirical distribution function (ECDF). It is a decreasing piecewise-constant function and can be shown to be the non-parametric maximum likelihood estimate (NPMLE) under the assumption of a decreasing density (note that the ECDF is the NPMLE without this assumption). 
 
-The Cramer-Von-Mises statistics is a criterion used for calculating the distance between  a cumulative distribution function $F^*$ compared to a given empirical distribution function $F_n$, or for comparing two empirical distributions. It is defined as
+\subsection{\bf Anderson-Darling Statistics}
+The Anderson-Darling  statistics is a criterion used for calculating the distance between  a cumulative distribution function $F^*$ compared to a given empirical distribution function $F_n$, or for comparing two empirical distributions. It is defined as
 
 \[
 \omega^2 = \int_{-\infty}^{\infty} [F_n(x)-F^*(x)]^2\,\mathrm{d}F^*(x) .
@@ -183,22 +213,15 @@ The procedure will be terminated until the Line effect is excluded.  Then the fi
 \section{\bf Real Data Analysis}
 \begin{figure}[h!]
 \centering
-\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCpvalue05.pdf}
+\includegraphics[scale = 0.27]{PlotG9P2PairedEndCBCpvalue05.pdf}
 \caption{Backward Modelselection for RFI data using the criterion based on number of pvalue less than 0.05 in each step of excluding one covariate. }
 \end{figure}
 
 
 \begin{figure}[h!]
 \centering
-\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCad.pdf}
-\caption{Backward Modelselection for RFI data using the criterion based on Anderson-Darling statistics in each step of excluding one covariate. }
-\end{figure}
-
-
-\begin{figure}[h!]
-\centering
-\includegraphics[scale = 0.23]{PlotG9P2PairedEndCBCcvm.pdf}
-\caption{Backward Modelselection for RFI data using the criterion based on Cramer-Von-Miser statistics in each step of excluding one covariate. }
+\includegraphics[scale = 0.27]{PlotG9P2PairedEndCBCks.pdf}
+\caption{Backward Modelselection for RFI data using the criterion based on Kolmogorov-Smirnov statistics in each step of excluding one covariate. }
 \end{figure}
 
 
@@ -212,14 +235,118 @@ Next, we select the genes whose correlation of fitted count and real count data 
 % pvalue05  & 0.105(0.002) &  
 % \end{tabular}
 
+% latex table generated in R 3.1.1 by xtable 1.7-3 package
+% Mon Dec 01 12:06:59 2014
+\begin{table}[ht]
+\centering
+{\scriptsize
+\begin{tabular}{|c|cccccccccccccc|c|}
+  \hline
+$\pi$ & Line & Diet & RFI & Concb & RINb & Conca & RINa & neut & lymp & mono & eosi & baso & Block & Order & pvalue05 \\ 
+  \hline
+0.9 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 3 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 74 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 9 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 4 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 4 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+   \hline
+0.8 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 74 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 5 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 5 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.8 & 1 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.8 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 7 \\ 
+  0.8 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 3 \\ 
+   \hline
+0.7 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 78 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 10 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 3 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.7 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 5 \\ 
+  0.7 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+   \hline
+0.6 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 78 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 9 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 6 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+   \hline
+\end{tabular}
+}
+\end{table}
+% latex table generated in R 3.1.1 by xtable 1.7-3 package
+% Mon Dec 01 12:07:08 2014
+\begin{table}[ht]
+\centering
+{\scriptsize
+\begin{tabular}{|c|cccccccccccccc|c|}
+  \hline
+$\pi$ & Line & Diet & RFI & Concb & RINb & Conca & RINa & neut & lymp & mono & eosi & baso & Block & Order & ks \\ 
+  \hline
+0.9 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 69 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 4 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 9 \\ 
+  0.9 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 6 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 2 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 2 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.9 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 3 \\ 
+   \hline
+0.8 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 77 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 7 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.8 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.8 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 7 \\ 
+  0.8 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+  0.8 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 2 \\ 
+   \hline
+0.7 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 79 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 8 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 2 \\ 
+  0.7 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 2 \\ 
+  0.7 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 4 \\ 
+  0.7 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 2 \\ 
+  0.7 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 \\ 
+   \hline
+0.6 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 82 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 8 \\ 
+  0.6 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 4 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 3 \\ 
+  0.6 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 \\ 
+   \hline
+\end{tabular}
+}
+\end{table}
 
+
+\newpage
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
 
-{\centering \includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-21} 
-\includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-22} 
-\includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-23} 
+{\centering \includegraphics[width=\maxwidth]{figure/minimal-unnamed-chunk-3} 
 
 }
 
